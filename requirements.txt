@@ -1,0 +1,25 @@
+# Core data & numerical
+numpy
+polars>=1.0.0
+scipy
+
+# Machine learning
+torch
+
+# Data access
+requests
+
+# Visualization
+matplotlib
+altair
+vegafusion
+vl-convert-python>=1.8.0
+
+# Utilities
+tqdm
+
+# Jupyter support
+ipykernel
+jupytext
+nbformat
+nbconvert
