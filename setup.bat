@@ -41,7 +41,7 @@ echo [..] Installing dependencies...
 pip install -e ".[notebook,dev,docs]" --quiet
 
 REM Install extra deps not in pyproject.toml
-pip install pandas seaborn scikit-learn vegafusion[embed] --quiet
+pip install pandas seaborn scikit-learn "vegafusion[embed]" "vl-convert-python>=1.8.0" --quiet
 
 REM Create data directories
 if not exist "data\cache" mkdir data\cache

@@ -39,7 +39,7 @@ pip install "torch>=2.4.0" --index-url https://download.pytorch.org/whl/cpu --qu
 # Install project with all extras
 echo "[..] Installing dependencies..."
 pip install -e ".[notebook,dev,docs]" --quiet
-pip install pandas seaborn scikit-learn "vegafusion[embed]" --quiet
+pip install pandas seaborn scikit-learn "vegafusion[embed]" "vl-convert-python>=1.8.0" --quiet
 
 # Create data directories
 mkdir -p data/cache data/models
