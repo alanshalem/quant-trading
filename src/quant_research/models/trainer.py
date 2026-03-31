@@ -48,8 +48,10 @@ def batch_train_reg(
 
     Args:
         model: PyTorch model to train
-        X_train, X_test: Training and test features
-        y_train, y_test: Training and test targets
+        X_train: Training features
+        X_test: Test features
+        y_train: Training targets
+        y_test: Test targets
         no_epochs: Number of training epochs
         criterion: Loss function (default: L1Loss)
         optimizer: Optional custom optimizer (overrides optimizer_type)

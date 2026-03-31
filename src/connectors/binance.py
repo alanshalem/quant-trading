@@ -61,7 +61,7 @@ class BinanceConnector(BaseConnector):
         date_str = date.strftime('%Y-%m-%d') if isinstance(date, datetime) else date
 
         cache_dir_path = Path(cache_dir)
-        cache_dir_path.mkdir(exist_ok=True)
+        cache_dir_path.mkdir(parents=True, exist_ok=True)
         cache_path = cache_dir_path / f"{symbol}-trades-{date_str}.parquet"
 
         if cache_path.exists():
@@ -70,7 +70,7 @@ class BinanceConnector(BaseConnector):
         url = f"{self.base_url}/{symbol}/{symbol}-trades-{date_str}.zip"
 
         download_dir_path = Path(download_dir)
-        download_dir_path.mkdir(exist_ok=True)
+        download_dir_path.mkdir(parents=True, exist_ok=True)
         zip_path = download_dir_path / f"{symbol}-trades-{date_str}.zip"
 
         # Download zip

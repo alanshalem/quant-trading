@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(ls /c/Python*/python.exe)",
+      "Read(//c/Users/**)",
+      "Bash(conda info:*)",
+      "Bash(conda activate:*)",
+      "Read(//c/ProgramData/miniconda3/**)",
+      "Read(//c/ProgramData/anaconda3/**)",
+      "Bash(/c/Users/alans/miniconda3/python.exe \"c:/development/quant-trading/accelerator/translate_strategy.py\")",
+      "Bash(ls -la \"c:/development/quant-trading/accelerator/01_notebooks/\"*_es*)",
+      "Bash(ls -la \"c:/development/quant-trading/accelerator/02_strategy/\"*_es*)",
+      "Bash(/c/Users/alans/miniconda3/python.exe \"c:/development/quant-trading/accelerator/regenerate_ipynb.py\")",
+      "Bash(/c/Users/alans/miniconda3/python.exe -c \":*)",
+      "Bash(/c/Users/alans/miniconda3/Scripts/conda.exe install:*)",
+      "Bash(/c/Users/alans/miniconda3/python.exe -c \"import ipykernel; print\\(f''ipykernel {ipykernel.__version__} installed OK''\\)\")",
+      "Bash(/c/Users/alans/miniconda3/python.exe -m pip install ipykernel)",
+      "Bash(wc -l /c/development/quant-trading/src/quant_research/**/*.py /c/development/quant-trading/src/quant_research/*.py)",
+      "Bash(find /c/development/quant-trading -type f \\\\\\(-name test_*.py -o -name *_test.py -o -path */tests/* -o -path */test/* \\\\\\))",
+      "Bash(/c/Users/alans/miniconda3/python.exe -m pip install mkdocs mkdocs-material \"mkdocstrings[python]\")",
+      "Bash(/c/Users/alans/miniconda3/python.exe -m mkdocs build)",
+      "Bash(/c/Users/alans/miniconda3/python.exe \"c:/development/quant-trading/accelerator/02_strategy/translate_to_es.py\")",
+      "Bash(PYTHONIOENCODING=utf-8 /c/Users/alans/miniconda3/python.exe \"c:/development/quant-trading/accelerator/02_strategy/translate_to_es.py\")",
+      "Bash(/c/Users/alans/miniconda3/python.exe -m pip list)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(docker exec:*)",
+      "Bash(\"c:/development/quant-trading/.gitignore\")",
+      "Bash(python -m venv .venv)",
+      "Bash(/c/Users/alans/miniconda3/python.exe -m venv /c/development/quant-trading/.venv)",
+      "Bash(/c/Users/alans/miniconda3/python.exe -m venv \"c:/development/quant-trading/.venv\")",
+      "Bash(\"c:/development/quant-trading/.venv/Scripts/python.exe\" -m pip install --upgrade pip --quiet)",
+      "Bash(\"c:/development/quant-trading/.venv/Scripts/pip.exe\" install:*)",
+      "Bash(\".venv/Scripts/pip.exe\" install:*)",
+      "Bash(ls -la c:/development/quant-trading/*.md c:/development/quant-trading/README*)",
+      "Bash(PYTHONIOENCODING=utf-8 /c/Users/alans/miniconda3/python.exe \"c:/development/quant-trading/accelerator/02_strategy/find_english.py\")",
+      "Bash(PYTHONIOENCODING=utf-8 /c/Users/alans/miniconda3/python.exe \"c:/development/quant-trading/accelerator/02_strategy/final_translate.py\")"
+    ]
+  }
+}

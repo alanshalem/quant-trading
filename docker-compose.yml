@@ -1,0 +1,39 @@
+services:
+  jupyter:
+    build: .
+    container_name: quant-trading-jupyter
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    ports:
+      - "8888:8888"
+    volumes:
+      # Mount project for live editing
+      - .:/app
+      # Persist Jupyter settings
+      - jupyter-data:/root/.jupyter
+    environment:
+      - PYTHONPATH=/app:/app/src
+    command: >
+      bash -c "mkdir -p data/cache data/models &&
+      jupyter lab
+      --ip=0.0.0.0
+      --port=8888
+      --no-browser
+      --allow-root
+      --NotebookApp.token=''
+      --ServerApp.root_dir=/app"
+
+  docs:
+    build: .
+    container_name: quant-trading-docs
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    command: mkdocs serve --dev-addr 0.0.0.0:8000
+    profiles:
+      - docs
+
+volumes:
+  jupyter-data:
