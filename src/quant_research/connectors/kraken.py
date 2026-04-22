@@ -91,7 +91,7 @@ class KrakenConnector(BaseConnector):
                 raise ValueError(f"Kraken API error: {data['error']}")
 
             # Find the result key (it varies based on symbol)
-            result_key = [k for k in data["result"].keys() if k != "last"][0]
+            result_key = next(k for k in data["result"] if k != "last")
             trades = data["result"][result_key]
 
             if not trades:
@@ -116,7 +116,7 @@ class KrakenConnector(BaseConnector):
             return df
 
         except requests.exceptions.HTTPError as e:
-            raise ValueError(f"Failed to download data for {symbol}: {e}")
+            raise ValueError(f"Failed to download data for {symbol}: {e}") from e
 
     def download_date_range(
         self,
@@ -204,7 +204,7 @@ class KrakenConnector(BaseConnector):
                 raise ValueError(f"Kraken API error: {data['error']}")
 
             # Find the result key
-            result_key = [k for k in data["result"].keys() if k != "last"][0]
+            result_key = next(k for k in data["result"] if k != "last")
             ohlc_data = data["result"][result_key]
 
             if not ohlc_data:
@@ -226,7 +226,7 @@ class KrakenConnector(BaseConnector):
             return df
 
         except Exception as e:
-            raise ValueError(f"Failed to download OHLC data for {symbol}: {e}")
+            raise ValueError(f"Failed to download OHLC data for {symbol}: {e}") from e
 
     def download_timeseries(
         self,

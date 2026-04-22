@@ -28,6 +28,10 @@ from typing import Any, Dict, List, Optional
 import ccxt
 import polars as pl
 
+from .._logging import get_logger
+
+logger = get_logger(__name__)
+
 # Bump whenever the cached parquet schema changes (column names, dtypes, order).
 CACHE_SCHEMA_VERSION = 1
 
@@ -120,14 +124,33 @@ class CCXTLoader:
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
     ) -> pl.DataFrame:
-        """Download OHLCV candles to parquet cache and return the DataFrame."""
+        """
+        Download OHLCV candles to parquet cache and return the DataFrame.
+
+        Pagination checkpoints every N batches so a KeyboardInterrupt
+        (Ctrl+C) during a long-running download preserves the partial
+        result: the accumulated rows are flushed to the parquet cache and
+        re-raised so the user knows the download was cut short.
+        """
         self._validate_symbol(symbol)
         self._validate_timeframe(timeframe)
 
         start_dt = self._parse_date(start_date) if start_date else datetime(2017, 1, 1)
         end_dt = self._parse_date(end_date) if end_date else datetime.now()
 
-        rows = self._fetch_ohlcv(symbol, timeframe, start_dt, end_dt)
+        try:
+            rows = self._fetch_ohlcv(symbol, timeframe, start_dt, end_dt)
+        except KeyboardInterrupt:
+            # Flush whatever we accumulated before re-raising. Helper stores
+            # partial results on self so we can recover them here.
+            partial = getattr(self, "_partial_rows", [])
+            if partial:
+                logger.warning(
+                    "Interrupted after %d candles for %s %s; flushing partial cache.",
+                    len(partial), symbol, timeframe,
+                )
+                self._write_cache(symbol, timeframe, self._rows_to_df(partial))
+            raise
         df = self._rows_to_df(rows)
         self._write_cache(symbol, timeframe, df)
         return df
@@ -183,6 +206,8 @@ class CCXTLoader:
         end_ms = int(end_dt.timestamp() * 1000)
         step_ms = TIMEFRAMES[timeframe]["ms"]
         all_rows: List[List[Any]] = []
+        # Expose to .download() so Ctrl+C handler can still flush a cache.
+        self._partial_rows = all_rows
 
         while cur_ms < end_ms:
             batch = self.exchange.fetch_ohlcv(
@@ -199,6 +224,7 @@ class CCXTLoader:
             if next_ms <= cur_ms:
                 break
             cur_ms = next_ms
+        self._partial_rows = []  # clear — normal completion
         return all_rows
 
     @staticmethod

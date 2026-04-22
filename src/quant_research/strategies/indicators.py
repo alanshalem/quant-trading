@@ -2,9 +2,24 @@
 indicators.py - Polars-native Technical Indicators
 ===================================================
 Lightweight replacements for the ``ta`` library so ``quant_research`` has no
-external dependency for the handful of indicators used by the bundled
-strategies. All functions operate on Polars ``Series`` / ``Expr`` and return
-a ``pl.Expr`` that can be plugged into ``with_columns``.
+external dependency for the indicators used by the bundled strategies.
+
+All functions return a ``pl.Expr`` (or a tuple of Exprs for multi-line
+indicators like Bollinger / MACD) that can be plugged into ``with_columns``.
+
+Indicators
+----------
+- Trend:          :func:`sma`, :func:`ema`, :func:`wma`, :func:`donchian_mid`
+- Momentum:       :func:`rsi`, :func:`macd`
+- Volatility:     :func:`atr`, :func:`bollinger`
+
+Example
+-------
+>>> import polars as pl
+>>> from quant_research.strategies.indicators import rsi, bollinger
+>>> df = df.with_columns(rsi("close", window=14))
+>>> mid, upper, lower = bollinger("close", window=20, std=2.0)
+>>> df = df.with_columns(mid, upper, lower)
 """
 
 from functools import lru_cache
@@ -84,3 +99,87 @@ def moving_average(
     if shift:
         expr = expr.shift(shift).alias(name)
     return df.with_columns(expr)
+
+
+# ---------- Momentum ----------
+
+def rsi(col: str = "close", window: int = 14, name: Optional[str] = None) -> pl.Expr:
+    """
+    Relative Strength Index (Wilder).
+
+    ``100 - 100 / (1 + avg_gain / avg_loss)`` where ``avg_*`` are exponential
+    moving averages with ``alpha = 1/window`` (Wilder smoothing), matching
+    the canonical definition used by most charting libraries.
+    """
+    delta = pl.col(col).diff()
+    gain = pl.when(delta > 0).then(delta).otherwise(0.0)
+    loss = pl.when(delta < 0).then(-delta).otherwise(0.0)
+    # Wilder smoothing is an EMA with alpha = 1/window.
+    avg_gain = gain.ewm_mean(alpha=1.0 / window, adjust=False)
+    avg_loss = loss.ewm_mean(alpha=1.0 / window, adjust=False)
+    rs = avg_gain / avg_loss
+    return (100 - 100 / (1 + rs)).alias(name or f"rsi_{window}")
+
+
+def macd(
+    col: str = "close",
+    fast: int = 12,
+    slow: int = 26,
+    signal: int = 9,
+    prefix: str = "macd",
+) -> Tuple[pl.Expr, pl.Expr, pl.Expr]:
+    """
+    MACD line, signal line, and histogram.
+
+    Returns a ``(macd, signal, histogram)`` tuple of Exprs. Canonical
+    12 / 26 / 9 exponential spans.
+    """
+    fast_ema = pl.col(col).ewm_mean(span=fast, adjust=False)
+    slow_ema = pl.col(col).ewm_mean(span=slow, adjust=False)
+    macd_line = (fast_ema - slow_ema).alias(prefix)
+    signal_line = macd_line.ewm_mean(span=signal, adjust=False).alias(f"{prefix}_signal")
+    hist = (macd_line - signal_line).alias(f"{prefix}_hist")
+    return macd_line, signal_line, hist
+
+
+# ---------- Volatility ----------
+
+def atr(
+    high: str = "high",
+    low: str = "low",
+    close: str = "close",
+    window: int = 14,
+    name: Optional[str] = None,
+) -> pl.Expr:
+    """
+    Average True Range (Wilder).
+
+    ``TR = max(high - low, |high - prev_close|, |low - prev_close|)``
+    smoothed with Wilder's EMA (``alpha = 1/window``).
+    """
+    prev_close = pl.col(close).shift(1)
+    tr = pl.max_horizontal(
+        pl.col(high) - pl.col(low),
+        (pl.col(high) - prev_close).abs(),
+        (pl.col(low) - prev_close).abs(),
+    )
+    return tr.ewm_mean(alpha=1.0 / window, adjust=False).alias(name or f"atr_{window}")
+
+
+def bollinger(
+    col: str = "close",
+    window: int = 20,
+    std: float = 2.0,
+    prefix: str = "bb",
+) -> Tuple[pl.Expr, pl.Expr, pl.Expr]:
+    """
+    Bollinger Bands.
+
+    Returns ``(mid, upper, lower)`` Exprs where ``mid`` is an SMA and
+    ``upper/lower = mid ± std * rolling_std``.
+    """
+    mid = pl.col(col).rolling_mean(window_size=window).alias(f"{prefix}_mid")
+    sd = pl.col(col).rolling_std(window_size=window)
+    upper = (mid + std * sd).alias(f"{prefix}_upper")
+    lower = (mid - std * sd).alias(f"{prefix}_lower")
+    return mid, upper, lower

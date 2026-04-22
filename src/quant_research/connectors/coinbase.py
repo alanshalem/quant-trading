@@ -7,7 +7,7 @@ Note: Coinbase provides historical data through their Advanced Trade API.
 This implementation uses their public market data endpoints.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List, Optional
 
@@ -102,7 +102,7 @@ class CoinbaseConnector(BaseConnector):
             return df
 
         except requests.exceptions.HTTPError as e:
-            raise ValueError(f"Failed to download data for {symbol}: {e}")
+            raise ValueError(f"Failed to download data for {symbol}: {e}") from e
 
     def download_date_range(
         self,
@@ -172,8 +172,8 @@ class CoinbaseConnector(BaseConnector):
         granularity = self._convert_interval(time_interval)
         url = f"{self.base_url}/products/{symbol}/candles"
 
-        # Calculate time range
-        end_time = datetime.utcnow()
+        # Calculate time range (UTC — Coinbase API expects ISO-8601 in UTC)
+        end_time = datetime.now(timezone.utc)
         start_time = end_time - timedelta(days=no_days)
 
         # Coinbase limits to 300 candles per request
@@ -199,7 +199,7 @@ class CoinbaseConnector(BaseConnector):
                     all_candles.extend(candles)
 
                     # Update end time for next iteration (candles are reverse chronological)
-                    oldest_time = datetime.utcfromtimestamp(candles[-1][0])
+                    oldest_time = datetime.fromtimestamp(candles[-1][0], tz=timezone.utc)
                     if oldest_time >= current_end:
                         break
                     current_end = oldest_time

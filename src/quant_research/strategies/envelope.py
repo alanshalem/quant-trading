@@ -101,11 +101,11 @@ class EnvelopeStrategy(BaseStrategy):
     def evaluate_orders(self, time: datetime, row: Dict[str, Any]) -> None:
         self.position_was_closed = False
 
-        if not self.good_to_trade:
-            if self.last_position_side == "long" and row["close"] > row["average"]:
-                self.good_to_trade = True
-            elif self.last_position_side == "short" and row["close"] < row["average"]:
-                self.good_to_trade = True
+        if not self.good_to_trade and (
+            (self.last_position_side == "long" and row["close"] > row["average"])
+            or (self.last_position_side == "short" and row["close"] < row["average"])
+        ):
+            self.good_to_trade = True
 
         # --- exits ---
         if self.position.side == "long":

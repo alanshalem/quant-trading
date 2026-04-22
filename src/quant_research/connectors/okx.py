@@ -114,7 +114,7 @@ class OKXConnector(BaseConnector):
             return df
 
         except requests.exceptions.HTTPError as e:
-            raise ValueError(f"Failed to download data for {symbol}: {e}")
+            raise ValueError(f"Failed to download data for {symbol}: {e}") from e
 
     def download_date_range(
         self,

@@ -4,6 +4,7 @@ plotting.py - Visualization Utilities
 Functions for creating charts and plots using Altair and Matplotlib.
 """
 
+import warnings
 from typing import List, Optional
 
 import altair
@@ -176,7 +177,7 @@ def plot_multiple_lines(
             # Plot the line, using the column name for the label
             plt.plot(x_index, y_values, label=col)
         else:
-            print(f"Warning: Column '{col}' not found in DataFrame.")
+            warnings.warn(f"Column '{col}' not found in DataFrame.", stacklevel=2)
 
     # 4. Finalize the plot
 

@@ -5,13 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "quant-research"
 version = "1.0.0"
-description = "Quantitative trading research library for ML-based trading strategies"
+description = "Polars-native quantitative trading research: vectorized ML-pipeline PnL + event-driven bar-loop backtesting, with ready-made envelope / SMA strategies and multi-exchange data connectors."
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
-keywords = ["trading", "quantitative-finance", "machine-learning", "pytorch", "backtesting"]
+keywords = [
+    "trading", "quantitative-finance", "backtesting", "polars",
+    "event-driven", "envelope-strategy", "machine-learning", "pytorch",
+    "binance", "ccxt",
+]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Financial and Insurance Industry",
     "License :: OSI Approved :: MIT License",
@@ -22,6 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Office/Business :: Financial :: Investment",
+    "Typing :: Typed",
 ]
 
 dependencies = [
@@ -64,13 +69,32 @@ docs = [
 where = ["src"]
 include = ["quant_research*"]
 
+[tool.setuptools.package-data]
+quant_research = ["py.typed"]
+
 [tool.ruff]
 line-length = 120
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I"]
-ignore = ["E501"]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "W",    # pycodestyle warnings
+    "I",    # isort
+    "B",    # flake8-bugbear (common Python bugs)
+    "UP",   # pyupgrade (modernize to target Python version)
+    "SIM",  # flake8-simplify (redundant patterns)
+]
+ignore = [
+    "E501",    # line too long — ruff format handles
+    "B008",    # function calls in default args — fine for our factory patterns
+    "UP006",   # typing.List -> list — legacy annotations in models/* stay for now
+    "UP007",   # Optional[X] -> X | None — same
+    "UP035",   # typing.Tuple etc — same
+    "UP045",   # Optional[X] in annotations — same rationale as UP007
+    "SIM108",  # ternary — subjective
+]
 
 [tool.mypy]
 python_version = "3.10"

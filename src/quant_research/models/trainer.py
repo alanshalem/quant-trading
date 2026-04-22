@@ -14,6 +14,7 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 
+from .._logging import get_logger
 from ..config import (
     DEFAULT_EPOCHS,
     DEFAULT_LBFGS_LR,
@@ -24,6 +25,8 @@ from ..config import (
 from ..utils.common import init_weights, set_seed
 from .inspection import get_linear_params
 from .validation import _prepare_train_test_tensors, timeseries_split
+
+logger = get_logger(__name__)
 
 # Note: eval_model_performance is imported lazily in benchmark_reg_model
 # to avoid circular import with backtest.engine
@@ -89,13 +92,14 @@ def batch_train_reg(
             for param_group in optimizer.param_groups:
                 param_group['lr'] = lr
 
-    # Logging model info
+    # Training progress goes through the library logger. Callers opt in with
+    # the ``logging`` kwarg; silent by default.
     if logging:
-        print(f"\nModel parameters: {sum(p.numel() for p in model.parameters())}")
-        print("Model architecture:")
+        logger.info("Model parameters: %d", sum(p.numel() for p in model.parameters()))
+        logger.info("Model architecture:")
         for name, param in model.named_parameters():
-            print(f"  {name}: {param.shape} ({param.numel()} params)")
-        print("\nTraining model...")
+            logger.info("  %s: %s (%d params)", name, param.shape, param.numel())
+        logger.info("Training model...")
 
     train_loss = None
     log_tick_size = max(no_epochs // LOG_INTERVAL_DIVISOR, 1)  # avoid zero division
@@ -117,7 +121,7 @@ def batch_train_reg(
                 train_loss = criterion(model(X_train), y_train).item()
 
             if logging and (epoch + 1) % log_tick_size == 0:
-                print(f"Epoch [{epoch+1}/{no_epochs}], Loss: {train_loss:.6f}")
+                logger.info("Epoch [%d/%d], Loss: %.6f", epoch + 1, no_epochs, train_loss)
 
     else:
         # SGD/Adam loop
@@ -130,14 +134,14 @@ def batch_train_reg(
             train_loss = loss.item()
 
             if logging and (epoch + 1) % log_tick_size == 0:
-                print(f"Epoch [{epoch+1}/{no_epochs}], Loss: {loss.item():.6f}")
+                logger.info("Epoch [%d/%d], Loss: %.6f", epoch + 1, no_epochs, loss.item())
 
     # After training
     if logging:
-        print("\nLearned parameters:")
+        logger.info("Learned parameters:")
         for name, param in model.named_parameters():
             if param.requires_grad:
-                print(f"{name}:\n{param.data.numpy()}")
+                logger.info("%s:\n%s", name, param.data.numpy())
 
     # Evaluation
     model.eval()
@@ -145,7 +149,7 @@ def batch_train_reg(
         y_hat = model(X_test)
         test_loss = criterion(y_hat, y_test)
         if logging:
-            print(f'\nTest Loss: {test_loss.item():.6f}, Train Loss: {train_loss:.6f}')
+            logger.info("Test Loss: %.6f, Train Loss: %.6f", test_loss.item(), train_loss)
 
     return y_hat
 

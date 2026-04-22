@@ -16,4 +16,4 @@ Event-driven trading strategies with bar-by-bar position management on a Polars 
 
 ## Simple triple-SMA (trend following)
 
-::: quant_research.strategies.sma
+::: quant_research.strategies.simple_sma

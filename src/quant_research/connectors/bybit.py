@@ -110,7 +110,7 @@ class BybitConnector(BaseConnector):
             return df
 
         except requests.exceptions.HTTPError as e:
-            raise ValueError(f"Failed to download data for {symbol} on {date_str}: {e}")
+            raise ValueError(f"Failed to download data for {symbol} on {date_str}: {e}") from e
 
     def download_date_range(
         self,

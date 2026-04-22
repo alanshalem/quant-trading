@@ -1,0 +1,31 @@
+version: 2
+updates:
+  # GitHub Actions (CI + docs deploy)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # Python deps (pyproject.toml)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    ignore:
+      # Torch is pinned by external wheel index (CPU vs CUDA) — handle manually.
+      - dependency-name: "torch"
+    groups:
+      dev:
+        dependency-type: "development"
+      polars-stack:
+        patterns:
+          - "polars"
+          - "pyarrow*"
+          - "vegafusion*"
+          - "vl-convert*"
