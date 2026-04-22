@@ -1,6 +1,13 @@
 # Quant Trading Research
 
-ML-based quantitative trading strategies using PyTorch, Polars, and real market data from Binance.
+Two complementary backtesting paradigms on Polars-native OHLCV data:
+
+- **Vectorized** — PyTorch model predictions → trade log-returns → equity curves via Polars expressions. Fast to iterate; used for ML research.
+- **Event-driven** — Bar-by-bar state machine with `Position`, SL/TP/liquidation, fees and pyramid-in support. Used for discretionary rules and realistic execution.
+
+Includes ready-made `EnvelopeStrategy` / `SimpleSMAStrategy` (event-driven) and 5 PyTorch architectures (vectorized), plus data connectors for Binance, Bybit, Coinbase, Kraken, OKX (raw trades) and any exchange CCXT supports (OHLCV candles).
+
+See [`docs/architecture.md`](docs/architecture.md) for a full module map and paradigm comparison.
 
 ## Quick Start
 
@@ -43,32 +50,71 @@ Open http://localhost:8000 for MkDocs.
 
 ---
 
+## Sanity check
+
+After `bash setup.sh`, verify the install:
+
+```bash
+.venv/bin/python -c "
+from quant_research.connectors import CCXTLoader
+from quant_research.backtest import Position, BacktestAnalysis
+from quant_research.strategies import EnvelopeStrategy
+print('imports ok')
+"
+```
+
+Run the test suite:
+
+```bash
+.venv/bin/python -m pytest -q
+```
+
+Expect `28 passed`.
+
+---
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `Running cells with 'Python 3.12.x' requires the ipykernel package` | VS Code picked the system interpreter, not `.venv` | `Ctrl+Shift+P` → **Python: Select Interpreter** → `.venv/bin/python`. Then open notebook → kernel picker top-right → `.venv`. |
+| `ModuleNotFoundError: No module named 'quant_research'` | Editable install didn't register (pre-reorg cache) | `rm -rf src/quant_research.egg-info && .venv/bin/pip install -e .` |
+| `error: externally-managed-environment` on `pip install` | Running pip against system Python (PEP 668) | Always activate the venv first: `source .venv/bin/activate`. |
+| `CCXTLoader` raises `FileNotFoundError: No cached data` | You called `.load()` before `.download()` | Run the `data_engine.ipynb` cell or call `.download(symbol, timeframe, start_date=...)` once. |
+| Torch installs take forever / download > 800 MB | Default is CPU wheel; GPU wheels are bigger | Accept CPU (default). For GPU: `QUANT_TORCH_INDEX=https://download.pytorch.org/whl/cu121 bash setup.sh`. |
+
+---
+
 ## Project Structure
 
 ```
 quant-trading/
 ├── src/
-│   ├── quant_research/            # Core library (pip installable)
-│   │   ├── backtest/              # Trade simulation, equity curves, Sharpe ratio
-│   │   ├── engineering/           # Data loading, OHLC aggregation, feature engineering
-│   │   ├── models/                # PyTorch architectures, training loops, validation
-│   │   ├── utils/                 # Reproducibility, tensor helpers, plotting
-│   │   └── config.py              # Global constants (seed, trading days, paths)
-│   │
-│   └── connectors/                # Exchange data connectors
-│       ├── binance.py             # Binance Futures historical trades
-│       ├── bybit.py               # Bybit connector
-│       ├── coinbase.py            # Coinbase connector
-│       ├── kraken.py              # Kraken connector
-│       └── okx.py                 # OKX connector
+│   └── quant_research/                 # Core library (pip installable)
+│       ├── backtest/
+│       │   ├── vectorized/             # ML-pipeline PnL (engine, performance)
+│       │   └── event_driven/           # Bar-loop state machine (Position, BacktestAnalysis)
+│       ├── connectors/                 # Exchange data connectors
+│       │   ├── binance.py              # Binance Futures historical trades
+│       │   ├── bybit.py                # Bybit connector
+│       │   ├── coinbase.py, kraken.py, okx.py
+│       │   └── ccxt_loader.py          # CCXT unified OHLCV loader
+│       ├── engineering/                # Data loading, OHLC aggregation, feature engineering
+│       ├── models/                     # PyTorch architectures, training loops, validation
+│       ├── strategies/                 # Event-driven strategies (Envelope, SimpleSMA) + indicators
+│       ├── utils/                      # Reproducibility, tensor helpers, plotting
+│       └── config.py                   # Global constants (seed, trading days, paths)
 │
-├── accelerator/                   # Learning materials
-│   ├── 01_notebooks/              # 8 modules: Python fundamentals → strategy logic
-│   └── 02_strategy/               # 3-part strategy: model → development → implementation
+├── accelerator/                        # Learning materials
+│   ├── 01_fundamentals/                # 8 modules: Python fundamentals → strategy logic
+│   ├── 02_ml_strategy/                 # 3-part ML strategy: model → development → implementation
+│   └── 03_event_driven_strategies/     # Envelope + SMA event-driven backtests
 │
-├── data/
-│   ├── cache/                     # Downloaded trade data (parquet, gitignored)
-│   └── models/                    # Saved model weights (gitignored)
+├── data/                          # Gitignored
+│   ├── cache/
+│   │   ├── *-trades-*.parquet     # Tick trades from Binance/Bybit/Kraken/OKX/Coinbase connectors
+│   │   └── ccxt/<exchange>/<tf>/  # OHLCV candles via CCXTLoader
+│   └── models/                    # Saved PyTorch weights
 │
 ├── docs/                          # MkDocs documentation source
 ├── tests/                         # pytest test suite
@@ -101,9 +147,12 @@ execute(orders)            # 3. Execute trades
 
 | Module | Purpose |
 |--------|---------|
+| `connectors` | Exchange data: Binance/Bybit/Coinbase/Kraken/OKX tick trades + `CCXTLoader` OHLCV candles |
 | `engineering` | Load parquet data, create OHLC bars, add log returns and lag features |
 | `models` | 5 PyTorch architectures (Linear, NonLinear, Deep, LSTM, Attention), training with LBFGS/Adam |
-| `backtest` | Trade simulation, compounding, leverage, transaction fees, performance metrics |
+| `backtest.vectorized` | ML-pipeline PnL: predictions → trade log-returns → fees → equity curves (Polars-only) |
+| `backtest.event_driven` | Bar-loop state machine: `Position`, SL/TP/liquidation, `BacktestAnalysis` metrics + plots |
+| `strategies` | `EnvelopeStrategy`, `SimpleSMAStrategy`, Polars-native indicators (SMA/EMA/WMA/Donchian) |
 | `utils` | Reproducibility (`set_seed`), Polars→PyTorch conversion, Altair/Matplotlib charts |
 
 ### Connectors
@@ -111,7 +160,7 @@ execute(orders)            # 3. Execute trades
 Download historical trade data from exchanges. Data is cached as parquet files in `data/cache/`.
 
 ```python
-from src.connectors.binance import BinanceConnector
+from quant_research.connectors.binance import BinanceConnector
 
 connector = BinanceConnector()
 connector.download_date_range("BTCUSDT", start_date, end_date)
@@ -119,11 +168,22 @@ connector.download_date_range("BTCUSDT", start_date, end_date)
 
 Supported: Binance, Bybit, Coinbase, Kraken, OKX.
 
+**CCXT OHLCV candles (any exchange)** — for event-driven strategies that
+consume pre-aggregated bars instead of tick trades:
+
+```python
+from quant_research.connectors import CCXTLoader
+
+loader = CCXTLoader(exchange="binanceusdm")
+loader.download("BTC/USDT:USDT", timeframe="1h", start_date="2023-01-01")
+df = loader.load("BTC/USDT:USDT", timeframe="1h")  # polars DataFrame
+```
+
 ---
 
 ## Accelerator (Learning Path)
 
-### Module 1: Fundamentals (`01_notebooks/`)
+### Module 1: Fundamentals (`01_fundamentals/`)
 
 | # | Module | Topics |
 |---|--------|--------|
@@ -136,9 +196,12 @@ Supported: Binance, Bybit, Coinbase, Kraken, OKX.
 | 07 | Cross-Validation | Rolling window, expanding window, walk-forward |
 | 08 | Strategy Logic | Entry/exit signals, position sizing, leverage, transaction costs |
 
-All notebooks available in English and Spanish (`_es` suffix).
+All notebooks available in English and Spanish (`_es` suffix). Each `.ipynb`
+is paired with a `.py` ([jupytext](https://github.com/mwouts/jupytext) sync)
+for diff-friendly version control — edit either side, Jupyter keeps them in
+sync on save.
 
-### Module 2: Strategy (`02_strategy/`)
+### Module 2: ML Strategy (`02_ml_strategy/`)
 
 | Part | Notebook | Focus |
 |------|----------|-------|
@@ -147,6 +210,17 @@ All notebooks available in English and Spanish (`_es` suffix).
 | 3 | `03-implementation` | Streaming inference, live trading loop, order management |
 
 Available in English and Spanish.
+
+### Module 3: Event-Driven Strategies (`03_event_driven_strategies/`)
+
+| Notebook | Focus |
+|----------|-------|
+| `data_engine` | Download OHLCV candles via `CCXTLoader` (cached as parquet) |
+| `run_envelope` | Multi-band `EnvelopeStrategy` backtest (mean reversion, scale-in) |
+| `run_sma` | `SimpleSMAStrategy` backtest (triple-SMA trend following) |
+
+Uses the event-driven `quant_research.strategies` classes and
+`BacktestAnalysis` for metrics + plots (Altair + Matplotlib).
 
 ---
 
@@ -171,11 +245,18 @@ Global settings in `src/quant_research/config.py`:
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `SEED` | 42 | Reproducibility seed |
-| `TRADING_DAYS_PER_YEAR` | 365 | For Sharpe annualization (crypto) |
-| `TRADING_HOURS_PER_DAY` | 24 | For Sharpe annualization (crypto) |
+| `TRADING_DAYS_PER_YEAR` | 365 | Sharpe annualization — crypto trades 24/7/365 (use 252 for equities) |
+| `TRADING_HOURS_PER_DAY` | 24 | Sharpe annualization — crypto (use 6.5 for US equities RTH) |
 | `DEFAULT_EPOCHS` | 6000 | Training epochs |
 | `DEFAULT_LEARNING_RATE` | 0.0002 | Adam learning rate |
 | `DEFAULT_TEST_SIZE` | 0.25 | Train/test split ratio |
+
+Override at the call site instead of editing `config.py`:
+
+```python
+from quant_research.backtest import sharpe_annualization_factor
+equities_sharpe_factor = sharpe_annualization_factor("1h", 252, 6.5)
+```
 
 ---
 

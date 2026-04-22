@@ -12,10 +12,8 @@ services:
       - .:/app
       # Persist Jupyter settings
       - jupyter-data:/root/.jupyter
-    environment:
-      - PYTHONPATH=/app:/app/src
     command: >
-      bash -c "mkdir -p data/cache data/models &&
+      bash -c "mkdir -p data/cache data/cache/ccxt data/models &&
       jupyter lab
       --ip=0.0.0.0
       --port=8888

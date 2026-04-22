@@ -2,11 +2,11 @@
 
 import pytest
 
-from src.connectors.binance import BinanceConnector, MAKER_FEE, TAKER_FEE
-from src.connectors.bybit import BybitConnector
-from src.connectors.okx import OKXConnector
-from src.connectors.kraken import KrakenConnector
-from src.connectors.coinbase import CoinbaseConnector
+from quant_research.connectors.binance import BinanceConnector, MAKER_FEE, TAKER_FEE
+from quant_research.connectors.bybit import BybitConnector
+from quant_research.connectors.okx import OKXConnector
+from quant_research.connectors.kraken import KrakenConnector
+from quant_research.connectors.coinbase import CoinbaseConnector
 
 
 class TestBinanceConnector:

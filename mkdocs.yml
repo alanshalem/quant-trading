@@ -66,8 +66,11 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - Architecture: architecture.md
   - API Reference:
       - Backtest: api/backtest.md
+      - Strategies: api/strategies.md
+      - Connectors: api/connectors.md
       - Engineering: api/engineering.md
       - Models: api/models.md
       - Utils: api/utils.md

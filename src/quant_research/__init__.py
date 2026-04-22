@@ -109,7 +109,29 @@ from .backtest import (
     add_trade_log_returns,
     add_equity_curve,
     add_compounding_trades,
+    Position,
+    PositionBehavior,
+    LongPositionBehavior,
+    ShortPositionBehavior,
+    update_equity_record,
+    BacktestAnalysis,
 )
+
+# Strategies - Event-driven strategy library
+from .strategies import (
+    BaseStrategy,
+    EnvelopeStrategy,
+    SimpleSMAStrategy,
+    AVERAGE_TYPES,
+    sma,
+    ema,
+    wma,
+    donchian_mid,
+    moving_average,
+)
+
+# Connectors - Exchange data (re-export submodule; keep import path explicit)
+from . import connectors
 
 __version__ = "1.0.0"
 __author__ = "MemLabs"
@@ -185,4 +207,20 @@ __all__ = [
     'add_trade_log_returns',
     'add_equity_curve',
     'add_compounding_trades',
+    'Position',
+    'PositionBehavior',
+    'LongPositionBehavior',
+    'ShortPositionBehavior',
+    'update_equity_record',
+    'BacktestAnalysis',
+    # Strategies
+    'BaseStrategy',
+    'EnvelopeStrategy',
+    'SimpleSMAStrategy',
+    'AVERAGE_TYPES',
+    'sma',
+    'ema',
+    'wma',
+    'donchian_mid',
+    'moving_average',
 ]

@@ -3,14 +3,12 @@ FROM python:3.12-slim
 LABEL maintainer="quant-research"
 LABEL description="Quant Trading Research - ML-based trading strategies"
 
-# Prevent Python from buffering stdout/stderr
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONPATH=/app:/app/src
 
 WORKDIR /app
 
-# Install system dependencies
+# System deps needed by torch + general scientific Python
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -21,38 +19,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY pyproject.toml ./
 COPY src/ ./src/
 
-# Install PyTorch CPU-only (separate index)
+# PyTorch CPU-only wheel (separate index).
+# Override at build time with: --build-arg TORCH_INDEX=https://download.pytorch.org/whl/cu121
+ARG TORCH_INDEX=https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir \
-    "torch>=2.4.0" --index-url https://download.pytorch.org/whl/cpu
+    pip install --no-cache-dir "torch>=2.4.0" --index-url ${TORCH_INDEX}
 
-# Install all other dependencies
-RUN pip install --no-cache-dir \
-    "polars>=1.0.0" \
-    "numpy>=2.0.0" \
-    "altair>=5.4.0" \
-    "vegafusion[embed]>=2.0.0" \
-    "pandas>=2.2.0" \
-    "matplotlib>=3.9.0" \
-    "seaborn>=0.13.0" \
-    "scikit-learn>=1.5.0" \
-    "requests>=2.32.0" \
-    "tqdm>=4.66.0" \
-    "ipykernel>=7.0.0" \
-    "jupyterlab>=4.2.0" \
-    "nbformat>=5.10.0" && \
-    pip install --no-cache-dir -e ".[dev,docs]"
+# Everything else (deps + notebook + dev + docs extras) comes from pyproject.toml
+RUN pip install --no-cache-dir -e ".[notebook,dev,docs]"
 
-# Create data directories
-RUN mkdir -p data/cache data/models
+# Data directories
+RUN mkdir -p data/cache data/cache/ccxt data/models
 
 # Copy the rest of the project
 COPY . .
 
-# Expose Jupyter port
+# JupyterLab port
 EXPOSE 8888
-# Expose MkDocs port
+# MkDocs port
 EXPOSE 8000
 
-# Default: start JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''"]

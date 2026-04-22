@@ -3,7 +3,7 @@
 import pytest
 import torch
 
-from src.quant_research import LinearModel, NonLinearModel, DeepModel
+from quant_research import LinearModel, NonLinearModel, DeepModel
 
 
 class TestLinearModel:

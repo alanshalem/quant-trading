@@ -1,126 +1,162 @@
 # Getting Started
 
-This guide walks you through the core workflow of the Quant Research library: from loading raw trade data to evaluating a trained model's trading performance.
+This page walks through both backtesting paradigms end to end. Pick whichever matches your use case — they share data loaders and indicators but diverge at the trade-generation step.
 
-## Pipeline Overview
+See [Architecture](architecture.md) for a high-level map.
 
-The library follows a three-stage pipeline:
-
-```mermaid
-graph LR
-    A[Engineering] -->|Features & Labels| B[Models]
-    B -->|Predictions| C[Backtest]
-
-    A:::eng
-    B:::mod
-    C:::bt
-
-    classDef eng fill:#4051b5,color:#fff,stroke:#4051b5
-    classDef mod fill:#7c4dff,color:#fff,stroke:#7c4dff
-    classDef bt fill:#00bfa5,color:#fff,stroke:#00bfa5
-```
-
-1. **Engineering** - Load raw trade data, resample into OHLC bars, and compute features (log returns, lags, correlations).
-2. **Models** - Split data with time-aware methods, train PyTorch regression models, and validate out-of-sample.
-3. **Backtest** - Convert model predictions into trading signals, simulate trades with transaction costs, and compute performance metrics (Sharpe ratio, equity curves).
-
-## Installation
+## Install
 
 ```bash
-pip install quant-research
+git clone <repo-url> quant-trading
+cd quant-trading
+bash setup.sh          # Mac/Linux
+setup.bat              # Windows
 ```
 
-For development with testing and linting tools:
+Activate the venv afterward (`source .venv/bin/activate`) or let VS Code pick up the `.venv` kernel automatically when opening notebooks.
 
-```bash
-pip install -e ".[dev]"
-```
+---
 
-## Step 1: Load and Prepare Data
+## Path A — Event-driven strategy (envelope / SMA)
 
-Use the engineering module to load OHLC timeseries and create features:
+Uses pre-aggregated OHLCV candles and a bar-by-bar state machine.
+
+### 1. Download candles
 
 ```python
-from quant_research.engineering import (
-    load_ohlc_timeseries,
-    add_lags,
-    add_log_return_features,
-)
+from quant_research.connectors import CCXTLoader
 
-# Load 1-hour OHLC bars from trade files
-df = load_ohlc_timeseries("data/trades", interval="1h")
-
-# Add log return features and lagged columns
-df = add_log_return_features(df)
-df = add_lags(df, n_lags=5)
+loader = CCXTLoader(exchange="binanceusdm")
+loader.download("BTC/USDT:USDT", timeframe="1h", start_date="2023-01-01")
+df = loader.load("BTC/USDT:USDT", timeframe="1h")
 ```
 
-## Step 2: Train a Model
+`CCXTLoader` caches parquet files under `data/cache/ccxt/<exchange>/<timeframe>/`. Re-calling `.load()` reads from cache — no network hit.
 
-Choose a model architecture and train it:
+### 2. Configure the strategy
+
+```python
+from quant_research.strategies import EnvelopeStrategy
+
+strategy = EnvelopeStrategy(
+    params={
+        "average_type": "SMA",         # 'SMA' | 'EMA' | 'WMA' | 'DCM'
+        "average_period": 6,
+        "envelopes": [0.07, 0.11, 0.14],
+        "stop_loss_pct": 0.3,
+        "position_size_percentage": 100,
+    },
+    ohlcv=df,
+)
+```
+
+### 3. Run + analyze
+
+```python
+from quant_research.backtest import BacktestAnalysis
+
+strategy.run_backtest(initial_balance=1000, leverage=1,
+                      open_fee_rate=0.0002, close_fee_rate=0.0006)
+
+results = BacktestAnalysis(strategy)
+results.print_metrics()      # Sharpe/Sortino/Calmar, profit factor, drawdowns
+results.plot_equity()        # altair
+results.plot_drawdown()
+results.plot_monthly_performance(year="all")
+```
+
+### 4. Extend with your own strategy
+
+Subclass `quant_research.strategies.base.BaseStrategy` and implement
+`populate_indicators`, `populate_long_signals`, `populate_short_signals`,
+`evaluate_orders(time, row)`. See
+[`strategies/envelope.py`](api/strategies.md) for a full example.
+
+---
+
+## Path B — Vectorized ML-pipeline PnL
+
+Trains a model on log returns and converts predictions into trade-level results using Polars expressions (no per-bar state).
+
+### 1. Load historical tick data
+
+```python
+from quant_research.connectors import BinanceConnector
+
+conn = BinanceConnector()
+conn.download_date_range("BTCUSDT", start_date="2023-01-01", end_date="2023-12-31")
+```
+
+Ticks land in `data/cache/BTCUSDT-trades-YYYY-MM-DD.parquet`.
+
+### 2. Aggregate + add features
+
+```python
+from quant_research.engineering import load_ohlc_timeseries, add_log_return_features
+
+df = load_ohlc_timeseries("BTCUSDT", "1h")
+df = add_log_return_features(df, col="close", forecast_horizon=1, max_no_lags=5)
+
+features = [f"close_log_return_lag_{i}" for i in range(1, 6)]
+target = "close_log_return"
+```
+
+### 3. Train a model, get trade results
 
 ```python
 from quant_research.utils import set_seed
-from quant_research.models import (
-    LinearModel,
-    timeseries_train_test_split,
-    train_reg_model,
-)
+from quant_research.models import LinearModel
+from quant_research.backtest import learn_model_trades
 
 set_seed(42)
-
-# Time-aware train/test split
-train_df, test_df = timeseries_train_test_split(df, test_size=0.25)
-
-# Train a linear regression model
-model = LinearModel(n_features=5)
-result = train_reg_model(model, train_df, target_col="log_return")
-```
-
-### Available Architectures
-
-| Model | Description |
-|-------|-------------|
-| `LinearModel` | Simple linear regression |
-| `NonLinearModel` | Single hidden layer with ReLU |
-| `DeepModel` | Multi-layer deep network |
-| `LSTMModel` | LSTM-based sequence model |
-| `AttentionModel` | Self-attention mechanism |
-
-## Step 3: Backtest the Strategy
-
-Evaluate how the model's predictions translate into trading performance:
-
-```python
-from quant_research.backtest import (
-    eval_model_performance,
-    add_tx_fees,
-    add_equity_curve,
+model = LinearModel(len(features))
+trades = learn_model_trades(
+    df, features=features, target=target, model=model,
+    test_size=0.25, optimizer_type="lbfgs",
 )
-
-# Evaluate full model performance (Sharpe, returns, etc.)
-perf = eval_model_performance(result)
-
-# Or build a detailed trade log with transaction costs
-trades = add_tx_fees(result, fee_bps=5)
-trades = add_equity_curve(trades)
 ```
 
-## Step 4: Visualize Results
+`trades` is a Polars frame with `y_pred`, `y_true`, `is_won`, `position`,
+`trade_log_return`, `equity_curve`, `drawdown_log_return`.
 
-Use the built-in plotting utilities:
+### 4. Apply fees + leverage
 
 ```python
-from quant_research.utils import plot_dyn_timeseries, plot_distribution
+from quant_research.backtest import add_compounding_trades
 
-# Interactive timeseries chart
-plot_dyn_timeseries(trades, y_col="equity", title="Equity Curve")
-
-# Return distribution
-plot_distribution(trades, col="trade_return", title="Trade Returns")
+# Requires 'open', 'dir_signal', 'cum_trade_log_return' columns
+trades = add_compounding_trades(
+    trades, capital=10_000, leverage=1.0,
+    maker_fee=0.0001, taker_fee=0.0003,
+)
 ```
 
-## Next Steps
+### 5. Annualized metrics
 
-- Browse the [API Reference](api/backtest.md) for detailed documentation of every function and class.
-- Check the Jupyter notebooks in the repository for complete worked examples.
+```python
+from quant_research.backtest import sharpe_annualization_factor, eval_model_performance
+
+ann = sharpe_annualization_factor("1h")
+perf = eval_model_performance(
+    y_actual=trades["y_true"], y_pred=trades["y_pred"],
+    feature_names=features, target_name=target, annualized_rate=ann,
+)
+```
+
+---
+
+## Path C — Bring your own candles
+
+Neither connector quite fits? Feed any polars OHLCV frame into the event-driven path. Required columns: `datetime`, `open`, `high`, `low`, `close` (plus `volume` optional).
+
+```python
+import polars as pl
+df = pl.read_parquet("my_data.parquet").sort("datetime")
+strategy = EnvelopeStrategy(params={...}, ohlcv=df)
+```
+
+## Next steps
+
+- [`API Reference → Backtest`](api/backtest.md) — vectorized + event-driven functions.
+- [`API Reference → Strategies`](api/strategies.md) — `EnvelopeStrategy`, `SimpleSMAStrategy`, indicators.
+- Runnable notebooks in `accelerator/02_ml_strategy/` (vectorized ML) and `accelerator/03_event_driven_strategies/` (envelope/SMA).
