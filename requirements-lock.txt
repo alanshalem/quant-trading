@@ -90,10 +90,6 @@ coverage==7.13.5
     # via pytest-cov
 cryptography==46.0.7
     # via ccxt
-cuda-bindings==13.2.0
-cuda-pathfinder==1.5.3
-    # via cuda-bindings
-cuda-toolkit==13.0.2
 cycler==0.12.1
     # via matplotlib
 debugpy==1.8.20
@@ -163,8 +159,6 @@ jinja2==3.1.6
     #   mkdocs-material
     #   mkdocstrings
     #   nbconvert
-joblib==1.5.3
-    # via scikit-learn
 json5==0.14.0
     # via jupyterlab-server
 jsonpointer==3.1.1
@@ -299,8 +293,6 @@ numpy==2.4.4
     #   matplotlib
     #   pandas
     #   quant-research (pyproject.toml)
-    #   scikit-learn
-    #   scipy
     #   seaborn
 packaging==26.1
     # via
@@ -449,10 +441,6 @@ rpds-py==0.30.0
     #   referencing
 ruff==0.15.11
     # via quant-research (pyproject.toml)
-scikit-learn==1.8.0
-    # via quant-research (pyproject.toml)
-scipy==1.17.1
-    # via scikit-learn
 seaborn==0.13.2
     # via quant-research (pyproject.toml)
 send2trash==2.1.0
@@ -469,8 +457,6 @@ terminado==0.18.1
     # via
     #   jupyter-server
     #   jupyter-server-terminals
-threadpoolctl==3.6.0
-    # via scikit-learn
 tinycss2==1.4.0
     # via bleach
 tornado==6.5.5

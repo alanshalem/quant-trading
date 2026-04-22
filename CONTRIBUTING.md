@@ -9,6 +9,14 @@ bash setup.sh          # Mac/Linux
 setup.bat              # Windows
 ```
 
+The setup script installs all extras (`[notebook,dev,docs,ml]`). If you
+only need the event-driven path (no PyTorch), install manually:
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev,docs]"       # skip [ml] → no torch (~500 MB saved)
+```
+
 Activate the venv afterward:
 
 ```bash

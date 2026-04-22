@@ -13,6 +13,8 @@ Two complementary backtesting paradigms on Polars-native OHLCV data:
 
 Includes ready-made `EnvelopeStrategy` / `SimpleSMAStrategy` (event-driven) and 5 PyTorch architectures (vectorized), plus data connectors for Binance, Bybit, Coinbase, Kraken, OKX (raw trades) and any exchange CCXT supports (OHLCV candles).
 
+PyTorch loads lazily — `from quant_research.strategies import EnvelopeStrategy` stays torch-free (≈ 200–500 ms saved on startup).
+
 See [`docs/architecture.md`](docs/architecture.md) for a full module map and paradigm comparison.
 
 ## Quick Start
@@ -41,21 +43,28 @@ Then open the folder in VS Code. The `.venv` kernel is detected automatically �
 
 ### Option B: Docker
 
-Requires Docker installed. No Python needed on host.
+Requires Docker installed. No Python needed on host. Two independent
+images — pick one, not both:
 
 ```bash
-docker compose up --build
+# JupyterLab (full image, includes PyTorch ≈ 500 MB → first build 3–10 min)
+docker compose --profile jupyter up --build
 ```
 
-Open <http://localhost:8888> for JupyterLab.
-
-For API docs:
+Open <http://localhost:8888>.
 
 ```bash
-docker compose --profile docs up
+# MkDocs only (slim image, NO PyTorch → first build ~40 s, image 429 MB vs jupyter multi-GB)
+docker compose --profile docs up --build
 ```
 
-Open <http://localhost:8000> for MkDocs.
+Open <http://localhost:8000>.
+
+Stop / clean up:
+
+```bash
+docker compose --profile docs down           # or --profile jupyter
+```
 
 ---
 
@@ -76,9 +85,11 @@ Run the test suite:
 
 ```bash
 .venv/bin/python -m pytest -q
+# or
+make test
 ```
 
-Expect `28 passed`.
+Expect `54 passed`.
 
 ---
 
@@ -99,41 +110,54 @@ Expect `28 passed`.
 ```text
 quant-trading/
 ├── src/
-│   └── quant_research/                 # Core library (pip installable)
+│   └── quant_research/                 # Core library (pip installable, PEP 561 typed)
 │       ├── backtest/
-│       │   ├── vectorized/             # ML-pipeline PnL (engine, performance)
+│       │   ├── vectorized/             # ML-pipeline PnL (engine, performance) — lazy-loaded
 │       │   └── event_driven/           # Bar-loop state machine (Position, BacktestAnalysis)
 │       ├── connectors/                 # Exchange data connectors
 │       │   ├── binance.py              # Binance Futures historical trades
-│       │   ├── bybit.py                # Bybit connector
-│       │   ├── coinbase.py, kraken.py, okx.py
+│       │   ├── bybit.py, coinbase.py, kraken.py, okx.py
 │       │   └── ccxt_loader.py          # CCXT unified OHLCV loader
 │       ├── engineering/                # Data loading, OHLC aggregation, feature engineering
-│       ├── models/                     # PyTorch architectures, training loops, validation
-│       ├── strategies/                 # Event-driven strategies (Envelope, SimpleSMA) + indicators
-│       ├── utils/                      # Reproducibility, tensor helpers, plotting
-│       └── config.py                   # Global constants (seed, trading days, paths)
+│       ├── models/                     # PyTorch architectures, training loops, validation — lazy-loaded
+│       ├── strategies/                 # Event-driven strategies + indicators (SMA, EMA, WMA, Donchian, RSI, MACD, ATR, Bollinger)
+│       ├── utils/                      # plotting (eager) + common reproducibility (lazy)
+│       ├── _logging.py                 # Library logger (QUANT_LOG_LEVEL env hook)
+│       ├── config.py                   # Global constants (seed, trading days, paths)
+│       └── py.typed                    # PEP 561 marker
 │
 ├── accelerator/                        # Learning materials
-│   ├── 01_fundamentals/                # 8 modules: Python fundamentals → strategy logic
-│   ├── 02_ml_strategy/                 # 3-part ML strategy: model → development → implementation
-│   └── 03_event_driven_strategies/     # Envelope + SMA event-driven backtests
+│   ├── 01_fundamentals/                # 8 Python + stats warmup notebooks
+│   ├── 02_ml_strategy/                 # 3-part ML strategy (vectorized paradigm)
+│   └── 03_event_driven_strategies/     # Envelope + SMA backtests (event-driven paradigm)
 │
-├── data/                          # Gitignored
+├── examples/                           # Runnable .py scripts (no Jupyter required)
+│   └── minimal_envelope.py
+│
+├── data/                               # Gitignored
 │   ├── cache/
-│   │   ├── *-trades-*.parquet     # Tick trades from Binance/Bybit/Kraken/OKX/Coinbase connectors
-│   │   └── ccxt/<exchange>/<tf>/  # OHLCV candles via CCXTLoader
-│   └── models/                    # Saved PyTorch weights
+│   │   ├── *-trades-*.parquet          # Tick trades from Binance/Bybit/Kraken/OKX/Coinbase
+│   │   └── ccxt/<exchange>/<tf>/       # OHLCV candles via CCXTLoader + _meta.json
+│   └── models/                         # Saved PyTorch weights
 │
-├── docs/                          # MkDocs documentation source
-├── tests/                         # pytest test suite
+├── docs/                               # MkDocs: index, getting-started, architecture, api/
+├── tests/                              # pytest suite (54 tests)
+├── scripts/                            # strip_torch_from_lock.py (lockfile post-processor)
 │
-├── pyproject.toml                 # Project metadata and dependencies
-├── Dockerfile                     # Docker image definition
-├── docker-compose.yml             # Docker services (Jupyter + MkDocs)
-├── setup.bat                      # Windows setup script
-├── setup.sh                       # Mac/Linux setup script
-└── mkdocs.yml                     # Documentation config
+├── .github/
+│   ├── workflows/{ci,docs}.yml         # CI (ruff+mypy+pytest, py 3.10/3.11/3.12) + mkdocs gh-pages
+│   └── dependabot.yml                  # Weekly pip + Actions updates
+├── .pre-commit-config.yaml             # ruff + nbstripout + eof-fixer
+├── .markdownlint.json                  # Doc lint overrides
+│
+├── pyproject.toml                      # Project metadata + deps + ruff/mypy/pytest config
+├── requirements-lock.txt               # Pinned lockfile (torch stripped — install separately)
+├── Makefile                            # make test | lint | fmt | typecheck | docs | lockfile
+├── Dockerfile                          # Multi-stage: base → docs (slim, no torch) | jupyter (full)
+├── docker-compose.yml                  # Two profiles: --profile docs | --profile jupyter
+├── setup.sh | setup.bat                # Local-venv bootstrap (Mac/Linux | Windows)
+├── CONTRIBUTING.md                     # Dev workflow + style
+└── mkdocs.yml                          # Documentation config
 ```
 
 ---
@@ -161,7 +185,7 @@ execute(orders)            # 3. Execute trades
 | `models` | 5 PyTorch architectures (Linear, NonLinear, Deep, LSTM, Attention), training with LBFGS/Adam |
 | `backtest.vectorized` | ML-pipeline PnL: predictions → trade log-returns → fees → equity curves (Polars-only) |
 | `backtest.event_driven` | Bar-loop state machine: `Position`, SL/TP/liquidation, `BacktestAnalysis` metrics + plots |
-| `strategies` | `EnvelopeStrategy`, `SimpleSMAStrategy`, Polars-native indicators (SMA/EMA/WMA/Donchian) |
+| `strategies` | `EnvelopeStrategy`, `SimpleSMAStrategy`, Polars-native indicators (SMA, EMA, WMA, Donchian, RSI, MACD, ATR, Bollinger) |
 | `utils` | Reproducibility (`set_seed`), Polars→PyTorch conversion, Altair/Matplotlib charts |
 
 ### Connectors
@@ -205,8 +229,7 @@ df = loader.load("BTC/USDT:USDT", timeframe="1h")  # polars DataFrame
 | 07 | Cross-Validation | Rolling window, expanding window, walk-forward |
 | 08 | Strategy Logic | Entry/exit signals, position sizing, leverage, transaction costs |
 
-All notebooks available in English and Spanish (`_es` suffix). Each `.ipynb`
-is paired with a `.py` ([jupytext](https://github.com/mwouts/jupytext) sync)
+Each `.ipynb` is paired with a `.py` ([jupytext](https://github.com/mwouts/jupytext) sync)
 for diff-friendly version control — edit either side, Jupyter keeps them in
 sync on save.
 
@@ -218,8 +241,6 @@ sync on save.
 | 2 | `02-strategy_development` | Entry/exit signals, trade sizing, compounding, leverage, liquidation |
 | 3 | `03-implementation` | Streaming inference, live trading loop, order management |
 
-Available in English and Spanish.
-
 ### Module 3: Event-Driven Strategies (`03_event_driven_strategies/`)
 
 | Notebook | Focus |
@@ -230,6 +251,15 @@ Available in English and Spanish.
 
 Uses the event-driven `quant_research.strategies` classes and
 `BacktestAnalysis` for metrics + plots (Altair + Matplotlib).
+
+### Examples (`examples/`)
+
+Plain-Python entry points for copy-paste quickstarts:
+
+```bash
+# Download + run an envelope backtest end to end, no Jupyter needed
+python examples/minimal_envelope.py --download --symbol BTC/USDT:USDT
+```
 
 ---
 
@@ -290,26 +320,33 @@ Open <http://localhost:8000>.
 
 ## Development
 
-### Run Tests
+Common commands via [Makefile](Makefile):
 
-```bash
-.venv/Scripts/python.exe -m pytest          # Windows
-.venv/bin/python -m pytest                  # Mac/Linux
-```
+| Command           | What it does |
+|-------------------|--------------|
+| `make test`       | Run pytest (54 tests) |
+| `make lint`       | Ruff check (E, F, W, I, B, UP, SIM rules) |
+| `make fmt`        | Ruff auto-fix + format |
+| `make typecheck`  | Mypy on `src/` (tiered strict) |
+| `make docs`       | Build mkdocs site |
+| `make docs-serve` | Live-reload docs at <http://127.0.0.1:8000> |
+| `make lockfile`   | Regenerate `requirements-lock.txt` from pyproject |
+| `make precommit`  | Run all pre-commit hooks on every file |
+| `make clean`      | Nuke caches + egg-info + site/ |
 
-### Lint
+Pre-commit hooks (installed via `pre-commit install`) run ruff auto-fix,
+[nbstripout](https://github.com/kynan/nbstripout) (wipe notebook cell
+outputs for reviewable diffs), and standard hygiene (trailing whitespace,
+EOL, large-file guard).
 
-```bash
-.venv/Scripts/python.exe -m ruff check src/ # Windows
-.venv/bin/python -m ruff check src/         # Mac/Linux
-```
+CI runs the same lint + typecheck + test matrix on every push / PR across
+Python 3.10 / 3.11 / 3.12 (see [.github/workflows/ci.yml](.github/workflows/ci.yml)).
+Docs auto-deploy to GitHub Pages on push to `main`
+([.github/workflows/docs.yml](.github/workflows/docs.yml)).
+[Dependabot](.github/dependabot.yml) opens weekly update PRs for pip +
+GitHub Actions.
 
-### Type Check
-
-```bash
-.venv/Scripts/python.exe -m mypy src/       # Windows
-.venv/bin/python -m mypy src/               # Mac/Linux
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full dev flow.
 
 ---
 
@@ -317,14 +354,17 @@ Open <http://localhost:8000>.
 
 | Category | Tools |
 |----------|-------|
-| ML Framework | PyTorch |
-| Data | Polars, Pandas, NumPy |
-| Visualization | Altair, Matplotlib, Seaborn |
+| ML Framework | PyTorch (lazy-loaded) |
+| Data | Polars (primary), Pandas, NumPy |
+| Exchange API | CCXT (unified OHLCV), raw public-data dumps |
+| Visualization | Altair, Matplotlib |
 | Documentation | MkDocs Material + mkdocstrings |
-| Testing | pytest |
-| Linting | Ruff, mypy |
-| Containerization | Docker |
-| Data Sources | Binance, Bybit, Coinbase, Kraken, OKX |
+| Testing | pytest (54 tests) + pytest-cov |
+| Lint / Format | Ruff (`E F W I B UP SIM`) + Mypy (tiered strict) |
+| Pre-commit | ruff, nbstripout, eof-fixer, yaml/toml checks |
+| CI / CD | GitHub Actions — CI matrix (3.10/3.11/3.12) + docs deploy + Dependabot |
+| Containerization | Docker + docker-compose (Jupyter + MkDocs) |
+| Data Sources | Binance, Bybit, Coinbase, Kraken, OKX (raw) + any CCXT exchange (OHLCV) |
 
 ---
 

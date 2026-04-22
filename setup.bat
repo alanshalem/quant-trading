@@ -45,9 +45,9 @@ if not defined QUANT_TORCH_INDEX set QUANT_TORCH_INDEX=https://download.pytorch.
 echo [..] Installing PyTorch from !QUANT_TORCH_INDEX!
 pip install "torch>=2.4.0" --index-url !QUANT_TORCH_INDEX! --quiet
 
-REM --- Project + extras (everything else lives in pyproject.toml) ---
+REM --- Project + extras (torch already installed above via CPU index) ---
 echo [..] Installing project and extras...
-pip install -e ".[notebook,dev,docs]" --quiet
+pip install -e ".[notebook,dev,docs,ml]" --quiet
 
 REM --- Data directories ---
 if not exist "data\cache" mkdir data\cache

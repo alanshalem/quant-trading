@@ -30,22 +30,31 @@ classifiers = [
 ]
 
 dependencies = [
+    # Core numerics + data (event-driven path works with just these).
     "polars>=1.0.0",
     "numpy>=2.0.0",
-    "torch>=2.4.0",
+    "pandas>=2.2.0",
+    # Exchange APIs + HTTP
+    "ccxt>=4.3.5",
+    "requests>=2.32.0",
+    # Visualization (event-driven BacktestAnalysis needs altair + matplotlib)
     "altair>=5.4.0",
     "vegafusion[embed]>=2.0.0",
-    "pandas>=2.2.0",
+    "vl-convert-python>=1.8.0",
     "matplotlib>=3.9.0",
     "seaborn>=0.13.0",
-    "scikit-learn>=1.5.0",
-    "requests>=2.32.0",
+    # Utilities
     "tqdm>=4.66.0",
-    "ccxt>=4.3.5",
-    "vl-convert-python>=1.8.0",
 ]
 
 [project.optional-dependencies]
+# Machine-learning extras. Event-driven users skip this entirely; docs
+# builds skip it too. Kept out of base deps so ``pip install .[docs]``
+# stays slim (no 530 MB torch wheel).
+ml = [
+    "torch>=2.4.0",
+    "scikit-learn>=1.5.0",
+]
 notebook = [
     "ipykernel>=7.0.0",
     "jupyterlab>=4.2.0",

@@ -49,8 +49,10 @@ echo "[..] Installing PyTorch from $TORCH_INDEX"
 pip install "torch>=2.4.0" --index-url "$TORCH_INDEX" --quiet
 
 # --- Project + extras (everything else lives in pyproject.toml) ---
+# [ml] pulls torch from PyPI's default index, but torch is already installed
+# above from the CPU (or QUANT_TORCH_INDEX) wheel, so pip skips it.
 echo "[..] Installing project and extras..."
-pip install -e ".[notebook,dev,docs]" --quiet
+pip install -e ".[notebook,dev,docs,ml]" --quiet
 
 # --- Data directories ---
 mkdir -p data/cache data/cache/ccxt data/models
