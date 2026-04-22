@@ -5,10 +5,11 @@ Transversal helper functions for Python, PyTorch, and general utilities.
 """
 
 import random
+
 import numpy as np
+import polars as pl
 import torch
 import torch.nn as nn
-import polars as pl
 
 from ..config import SEED
 
@@ -49,7 +50,7 @@ def set_seed(seed: int = SEED) -> None:
     torch.use_deterministic_algorithms(True)
 
 
-def to_tensor(x, dtype=None) -> torch.Tensor:
+def to_tensor(x: pl.Series, dtype: torch.dtype | None = None) -> torch.Tensor:
     """
     Convert a Polars Series or DataFrame column to a PyTorch tensor.
 

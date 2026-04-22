@@ -1,39 +1,18 @@
 """End-to-end tests for the event-driven strategies."""
 
-from datetime import datetime, timedelta
-
-import numpy as np
 import polars as pl
 import pytest
 
+from quant_research.backtest import BacktestAnalysis
 from quant_research.strategies import (
     EnvelopeStrategy,
     SimpleSMAStrategy,
-    sma,
-    ema,
-    wma,
     donchian_mid,
+    ema,
     moving_average,
+    sma,
+    wma,
 )
-from quant_research.backtest import BacktestAnalysis
-
-
-@pytest.fixture
-def synthetic_ohlcv() -> pl.DataFrame:
-    rng = np.random.default_rng(0)
-    n = 500
-    start = datetime(2023, 1, 1)
-    times = [start + timedelta(hours=i) for i in range(n)]
-    close = 100 + np.cumsum(rng.standard_normal(n) * 0.5) + 5 * np.sin(np.arange(n) / 30)
-    high = close + np.abs(rng.standard_normal(n) * 0.3)
-    low = close - np.abs(rng.standard_normal(n) * 0.3)
-    op = close + rng.standard_normal(n) * 0.1
-    vol = rng.random(n) * 100
-    return pl.DataFrame({
-        "datetime": times,
-        "open": op, "high": high, "low": low, "close": close, "volume": vol,
-    })
-
 
 # ----- indicators -----
 

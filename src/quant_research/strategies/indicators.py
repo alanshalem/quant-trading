@@ -9,6 +9,7 @@ a ``pl.Expr`` that can be plugged into ``with_columns``.
 
 from functools import lru_cache
 from typing import List, Optional, Tuple
+
 import polars as pl
 
 

@@ -4,16 +4,17 @@ binance.py - Binance Exchange Connector
 Connector for downloading Binance USDT-M Futures trade data.
 """
 
-from typing import List, Optional
-import requests
 import zipfile
-from pathlib import Path
-import polars as pl
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import List, Optional
+
+import polars as pl
+import requests
 from tqdm import tqdm
 
+from ..engineering import OHLC_AGGS, timeseries
 from .base import BaseConnector
-from ..engineering import timeseries, OHLC_AGGS
 
 # Fee constants (as of 2024 for regular users)
 MAKER_FEE = 0.000450  # 0.045%

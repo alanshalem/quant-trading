@@ -5,18 +5,17 @@ Transversal helper functions for reproducibility, tensor conversion, and visuali
 """
 
 from .common import (
+    init_weights,
     set_seed,
     to_tensor,
-    init_weights,
 )
-
 from .plotting import (
     plot,
-    plot_distribution,
-    plot_static_timeseries,
-    plot_multiple_lines,
-    plot_dyn_timeseries,
     plot_column,
+    plot_distribution,
+    plot_dyn_timeseries,
+    plot_multiple_lines,
+    plot_static_timeseries,
 )
 
 __all__ = [

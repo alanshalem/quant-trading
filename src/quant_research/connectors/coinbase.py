@@ -7,11 +7,12 @@ Note: Coinbase provides historical data through their Advanced Trade API.
 This implementation uses their public market data endpoints.
 """
 
-from typing import List, Optional
-import requests
-from pathlib import Path
-import polars as pl
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import List, Optional
+
+import polars as pl
+import requests
 from tqdm import tqdm
 
 from .base import BaseConnector

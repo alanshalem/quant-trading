@@ -5,15 +5,14 @@ Bar-by-bar state machine: ``Position`` primitives plus ``BacktestAnalysis``
 metrics/plots consumed by :mod:`quant_research.strategies`.
 """
 
+from .analysis import BacktestAnalysis
 from .position import (
+    LongPositionBehavior,
     Position,
     PositionBehavior,
-    LongPositionBehavior,
     ShortPositionBehavior,
     update_equity_record,
 )
-
-from .analysis import BacktestAnalysis
 
 __all__ = [
     "Position",

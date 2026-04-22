@@ -27,111 +27,110 @@ Course: Build a Quant Trading System
 """
 
 # Configuration
+# Connectors - Exchange data (re-export submodule; keep import path explicit)
+from . import connectors
+
+# Backtest - Performance and simulation
+from .backtest import (
+    BacktestAnalysis,
+    LongPositionBehavior,
+    Position,
+    PositionBehavior,
+    ShortPositionBehavior,
+    add_compounding_trades,
+    add_equity_curve,
+    add_trade_log_returns,
+    add_tx_fee,
+    add_tx_fees,
+    add_tx_fees_log,
+    eval_model_performance,
+    learn_model_trade_pnl,
+    learn_model_trades,
+    model_trade_results,
+    sharpe_annualization_factor,
+    update_equity_record,
+)
 from .config import (
-    SEED,
-    IS_WINDOWS,
-    DEFAULT_PARALLEL,
-    DEFAULT_LEARNING_RATE,
-    DEFAULT_LBFGS_LR,
     DEFAULT_EPOCHS,
+    DEFAULT_LBFGS_LR,
+    DEFAULT_LEARNING_RATE,
+    DEFAULT_PARALLEL,
     DEFAULT_TEST_SIZE,
+    IS_WINDOWS,
+    LOG_INTERVAL_DIVISOR,
+    SEED,
     TRADING_DAYS_PER_YEAR,
     TRADING_HOURS_PER_DAY,
-    LOG_INTERVAL_DIVISOR,
-)
-
-# Utils - Common utilities
-from .utils import (
-    set_seed,
-    to_tensor,
-    init_weights,
-    plot,
-    plot_distribution,
-    plot_static_timeseries,
-    plot_multiple_lines,
-    plot_dyn_timeseries,
-    plot_column,
 )
 
 # Engineering - Data loading and processing
 from .engineering import (
     OHLC_AGGS,
-    get_trade_files,
-    load_timeseries,
-    load_ohlc_timeseries,
-    load_timeseries_range,
-    load_ohlc_timeseries_range,
-    timeseries,
-    ohlc_timeseries,
-    lag_col_names,
-    log_returns_col,
-    log_return_col,
-    log_return,
-    lag_cols,
     add_lags,
     add_log_return_features,
     auto_reg_corr_matrx,
     compare_ts_corr,
+    get_trade_files,
+    lag_col_names,
+    lag_cols,
+    load_ohlc_timeseries,
+    load_ohlc_timeseries_range,
+    load_timeseries,
+    load_timeseries_range,
+    log_return,
+    log_return_col,
+    log_returns_col,
+    ohlc_timeseries,
+    timeseries,
 )
 
 # Models - ML training and validation
 from .models import (
+    AttentionModel,
+    DeepModel,
+    # Model architectures
+    LinearModel,
+    LSTMModel,
+    NonLinearModel,
+    add_model_predictions,
+    batch_train_reg,
+    benchmark_linear_models,
+    benchmark_reg_model,
+    get_linear_params,
+    print_model_complexity_ratio,
+    print_model_info,
+    print_model_params,
     timeseries_split,
     timeseries_train_test_split,
     total_model_params,
-    print_model_info,
-    print_model_complexity_ratio,
-    get_linear_params,
-    print_model_params,
-    batch_train_reg,
     train_reg_model,
-    benchmark_reg_model,
-    benchmark_linear_models,
-    add_model_predictions,
-    # Model architectures
-    LinearModel,
-    NonLinearModel,
-    DeepModel,
-    LSTMModel,
-    AttentionModel,
-)
-
-# Backtest - Performance and simulation
-from .backtest import (
-    sharpe_annualization_factor,
-    model_trade_results,
-    eval_model_performance,
-    learn_model_trades,
-    learn_model_trade_pnl,
-    add_tx_fee,
-    add_tx_fees,
-    add_tx_fees_log,
-    add_trade_log_returns,
-    add_equity_curve,
-    add_compounding_trades,
-    Position,
-    PositionBehavior,
-    LongPositionBehavior,
-    ShortPositionBehavior,
-    update_equity_record,
-    BacktestAnalysis,
 )
 
 # Strategies - Event-driven strategy library
 from .strategies import (
+    AVERAGE_TYPES,
     BaseStrategy,
     EnvelopeStrategy,
     SimpleSMAStrategy,
-    AVERAGE_TYPES,
-    sma,
-    ema,
-    wma,
     donchian_mid,
+    ema,
     moving_average,
+    sma,
+    wma,
 )
 
-# Connectors - Exchange data (re-export submodule; keep import path explicit)
-from . import connectors
+# Utils - Common utilities
+from .utils import (
+    init_weights,
+    plot,
+    plot_column,
+    plot_distribution,
+    plot_dyn_timeseries,
+    plot_multiple_lines,
+    plot_static_timeseries,
+    set_seed,
+    to_tensor,
+)
 
 __version__ = "1.0.0"
 __author__ = "MemLabs"
@@ -223,4 +222,6 @@ __all__ = [
     'wma',
     'donchian_mid',
     'moving_average',
+    # Connectors (submodule)
+    'connectors',
 ]

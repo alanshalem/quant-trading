@@ -26,12 +26,12 @@ Usage:
 """
 
 from .base import BaseConnector
-from .binance import BinanceConnector, MAKER_FEE, TAKER_FEE
+from .binance import MAKER_FEE, TAKER_FEE, BinanceConnector
 from .bybit import BybitConnector
-from .okx import OKXConnector
-from .kraken import KrakenConnector
+from .ccxt_loader import EXCHANGE_LIMITS, TIMEFRAMES, CCXTLoader
 from .coinbase import CoinbaseConnector
-from .ccxt_loader import CCXTLoader, TIMEFRAMES, EXCHANGE_LIMITS
+from .kraken import KrakenConnector
+from .okx import OKXConnector
 
 __all__ = [
     'BaseConnector',

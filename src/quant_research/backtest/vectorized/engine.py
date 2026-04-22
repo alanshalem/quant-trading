@@ -4,19 +4,21 @@ engine.py - Backtest Engine
 Functions for simulating trades and calculating PnL.
 """
 
-from typing import List, Union
+from typing import List, Optional, Union
+
 import numpy as np
 import numpy.typing as npt
 import polars as pl
 import torch.nn as nn
+import torch.optim as optim
 
 from ...config import DEFAULT_EPOCHS
-from ...models.validation import timeseries_split, _prepare_train_test_tensors
 from ...models.trainer import batch_train_reg
+from ...models.validation import _prepare_train_test_tensors, timeseries_split
 from .performance import model_trade_results
 
 
-def learn_model_trades(df: pl.DataFrame, features: List[str], target: str, model: nn.Module, test_size=0.25, loss=None, optimizer=None, optimizer_type: str = 'lbfgs', no_epochs=None, log=False, lr=None):
+def learn_model_trades(df: pl.DataFrame, features: List[str], target: str, model: nn.Module, test_size: float = 0.25, loss: Optional[nn.Module] = None, optimizer: Optional[optim.Optimizer] = None, optimizer_type: str = 'lbfgs', no_epochs: Optional[int] = None, log: bool = False, lr: Optional[float] = None) -> pl.DataFrame:
     """
     Train a model and return trade-level results DataFrame.
 
@@ -65,7 +67,7 @@ def learn_model_trades(df: pl.DataFrame, features: List[str], target: str, model
     return model_trade_results(y_test, y_hat)
 
 
-def learn_model_trade_pnl(df: pl.DataFrame, features: List[str], target: str, model: nn.Module, test_size=0.25, loss=None, optimizer=None, optimizer_type: str = 'lbfgs', no_epochs=None, log=False, lr=None):
+def learn_model_trade_pnl(df: pl.DataFrame, features: List[str], target: str, model: nn.Module, test_size: float = 0.25, loss: Optional[nn.Module] = None, optimizer: Optional[optim.Optimizer] = None, optimizer_type: str = 'lbfgs', no_epochs: Optional[int] = None, log: bool = False, lr: Optional[float] = None) -> pl.DataFrame:
     """
     Train a model and return trade-level PnL results.
 

@@ -164,7 +164,9 @@ class BacktestAnalysis:
     def print_metrics(self, path: Optional[str] = None) -> None:
         m = self.metrics
         buf = io.StringIO()
-        p = lambda *a: print(*a, file=buf)
+
+        def p(*a):
+            print(*a, file=buf)
 
         p("--- General ---")
         p(f"Period: [{m['period_start']}] -> [{m['period_end']}]")

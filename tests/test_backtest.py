@@ -1,8 +1,5 @@
 """Tests for backtesting module."""
 
-import pytest
-import polars as pl
-import numpy as np
 
 from quant_research import sharpe_annualization_factor
 

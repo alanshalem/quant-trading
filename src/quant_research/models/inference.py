@@ -5,9 +5,10 @@ Functions for running inference with trained PyTorch models.
 """
 
 from typing import List, Union
+
+import polars as pl
 import torch
 import torch.nn as nn
-import polars as pl
 
 
 def add_model_predictions(test_trades: pl.DataFrame, model: nn.Module, features: Union[str, List[str]]) -> pl.DataFrame:
@@ -37,7 +38,7 @@ def add_model_predictions(test_trades: pl.DataFrame, model: nn.Module, features:
         - Predictions are converted to numpy then Polars Series
         - Handles both single feature and multiple features
     """
-    if type(features) != list:
+    if not isinstance(features, list):
         features = [features]
     X_test = torch.tensor(test_trades[features].to_numpy(), dtype=torch.float32)
     y_hat = model(X_test).detach().cpu().numpy().squeeze()

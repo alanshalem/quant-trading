@@ -4,8 +4,9 @@ performance.py - Performance Metrics
 Functions for calculating trading performance metrics.
 """
 
-from typing import Any, Dict, List
 import re
+from typing import Any, Dict, List
+
 import numpy as np
 import polars as pl
 

@@ -4,9 +4,10 @@ validation.py - Data Splitting and Validation
 Functions for splitting time series data into train/test sets.
 """
 
-from typing import List, Tuple
-import torch
+from typing import List, Tuple, Union
+
 import polars as pl
+import torch
 
 from ..utils.common import to_tensor
 
@@ -39,7 +40,7 @@ def timeseries_split(t, test_size=0.25):
     return t[:split_idx], t[split_idx:]
 
 
-def timeseries_train_test_split(df: pl.DataFrame, features, target, test_size=0.25) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+def timeseries_train_test_split(df: pl.DataFrame, features: Union[str, List[str]], target: str, test_size: float = 0.25) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Split time series data into train/test sets and convert to PyTorch tensors.
 

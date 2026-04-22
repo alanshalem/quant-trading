@@ -19,6 +19,8 @@ Usage:
     df = loader.load("BTC/USDT:USDT", "1h")
 """
 
+import json
+import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -26,6 +28,8 @@ from typing import Any, Dict, List, Optional
 import ccxt
 import polars as pl
 
+# Bump whenever the cached parquet schema changes (column names, dtypes, order).
+CACHE_SCHEMA_VERSION = 1
 
 TIMEFRAMES: Dict[str, Dict[str, int]] = {
     "1m":  {"ms": 60_000},
@@ -80,8 +84,9 @@ class CCXTLoader:
         self.limit = EXCHANGE_LIMITS.get(exchange, 500)
 
         if cache_dir is None:
-            cache_dir = Path(__file__).resolve().parents[2] / "data" / "cache" / "ccxt"
-        self.cache_dir = Path(cache_dir)
+            self.cache_dir = Path(__file__).resolve().parents[2] / "data" / "cache" / "ccxt"
+        else:
+            self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         self._markets: Optional[Dict[str, Any]] = None
@@ -141,6 +146,7 @@ class CCXTLoader:
                 f"No cached data for {symbol} {timeframe} on {self.exchange_id}. "
                 "Run .download() first."
             )
+        self._check_cache_version(path.parent)
         df = pl.read_parquet(path)
         if df.is_empty():
             raise ValueError(f"Cached data for {symbol} {timeframe} is empty")
@@ -150,6 +156,23 @@ class CCXTLoader:
         if end_date is not None:
             df = df.filter(pl.col("datetime") <= self._parse_date(end_date))
         return df
+
+    def _check_cache_version(self, dir_path: Path) -> None:
+        """Warn if cached parquet was written by a different schema version."""
+        meta = dir_path / "_meta.json"
+        if not meta.exists():
+            return
+        try:
+            stored = json.loads(meta.read_text()).get("schema_version")
+        except (json.JSONDecodeError, OSError):
+            return
+        if stored != CACHE_SCHEMA_VERSION:
+            warnings.warn(
+                f"Cache schema mismatch at {dir_path}: "
+                f"stored={stored}, current={CACHE_SCHEMA_VERSION}. "
+                "Re-run .download() to refresh.",
+                stacklevel=3,
+            )
 
     # ---------- internals ----------
 
@@ -205,7 +228,15 @@ class CCXTLoader:
         return dir_path / f"{safe_symbol}.parquet"
 
     def _write_cache(self, symbol: str, timeframe: str, df: pl.DataFrame) -> None:
-        df.write_parquet(self._cache_path(symbol, timeframe))
+        path = self._cache_path(symbol, timeframe)
+        df.write_parquet(path)
+        meta = path.parent / "_meta.json"
+        meta.write_text(json.dumps({
+            "schema_version": CACHE_SCHEMA_VERSION,
+            "columns": df.columns,
+            "exchange": self.exchange_id,
+            "timeframe": timeframe,
+        }))
 
     def _validate_symbol(self, symbol: str) -> None:
         if symbol not in self.available_symbols:

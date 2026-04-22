@@ -1,12 +1,11 @@
 """Tests for exchange connectors."""
 
-import pytest
 
-from quant_research.connectors.binance import BinanceConnector, MAKER_FEE, TAKER_FEE
+from quant_research.connectors.binance import MAKER_FEE, TAKER_FEE, BinanceConnector
 from quant_research.connectors.bybit import BybitConnector
-from quant_research.connectors.okx import OKXConnector
-from quant_research.connectors.kraken import KrakenConnector
 from quant_research.connectors.coinbase import CoinbaseConnector
+from quant_research.connectors.kraken import KrakenConnector
+from quant_research.connectors.okx import OKXConnector
 
 
 class TestBinanceConnector:

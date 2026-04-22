@@ -4,12 +4,10 @@ trainer.py - Model Training
 Functions for training PyTorch models with batch gradient descent.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
 import itertools
-from functools import partial
 from concurrent.futures import ProcessPoolExecutor
+from typing import Any, Dict, List, Optional, Tuple
 
-import numpy as np
 import polars as pl
 import torch
 import torch.nn as nn
@@ -17,15 +15,15 @@ import torch.optim as optim
 from tqdm import tqdm
 
 from ..config import (
-    SEED,
-    DEFAULT_PARALLEL,
-    DEFAULT_LBFGS_LR,
     DEFAULT_EPOCHS,
+    DEFAULT_LBFGS_LR,
+    DEFAULT_PARALLEL,
     LOG_INTERVAL_DIVISOR,
+    SEED,
 )
-from ..utils.common import set_seed, init_weights
-from .validation import timeseries_split, _prepare_train_test_tensors
+from ..utils.common import init_weights, set_seed
 from .inspection import get_linear_params
+from .validation import _prepare_train_test_tensors, timeseries_split
 
 # Note: eval_model_performance is imported lazily in benchmark_reg_model
 # to avoid circular import with backtest.engine
@@ -33,17 +31,17 @@ from .inspection import get_linear_params
 
 def batch_train_reg(
     model: nn.Module,
-    X_train,
-    X_test,
-    y_train,
-    y_test,
+    X_train: torch.Tensor,
+    X_test: torch.Tensor,
+    y_train: torch.Tensor,
+    y_test: torch.Tensor,
     no_epochs: int,
-    criterion=None,
-    optimizer=None,
+    criterion: Optional[nn.Module] = None,
+    optimizer: Optional[optim.Optimizer] = None,
     optimizer_type: str = 'lbfgs',
-    logging=True,
-    lr=None
-):
+    logging: bool = True,
+    lr: Optional[float] = None,
+) -> torch.Tensor:
     """Train a regression model with batch gradient descent.
 
     Args:
@@ -152,7 +150,7 @@ def batch_train_reg(
     return y_hat
 
 
-def train_reg_model(df: pl.DataFrame, features: List[str], target: str, model: nn.Module, annualized_rate, test_size=0.25, loss=None, optimizer=None, optimizer_type: str = 'lbfgs', no_epochs=None, log=False, lr=None):
+def train_reg_model(df: pl.DataFrame, features: List[str], target: str, model: nn.Module, annualized_rate: float, test_size: float = 0.25, loss: Optional[nn.Module] = None, optimizer: Optional[optim.Optimizer] = None, optimizer_type: str = 'lbfgs', no_epochs: Optional[int] = None, log: bool = False, lr: Optional[float] = None) -> torch.Tensor:
     """
     Train a regression model and return test set predictions.
 
@@ -189,7 +187,7 @@ def train_reg_model(df: pl.DataFrame, features: List[str], target: str, model: n
     return y_hat
 
 
-def benchmark_reg_model(df: pl.DataFrame, features: List[str], target: str, model: nn.Module, annualized_rate, test_size=0.25, loss=None, optimizer=None, optimizer_type: str = 'lbfgs', no_epochs=None, log=False, lr=None):
+def benchmark_reg_model(df: pl.DataFrame, features: List[str], target: str, model: nn.Module, annualized_rate: float, test_size: float = 0.25, loss: Optional[nn.Module] = None, optimizer: Optional[optim.Optimizer] = None, optimizer_type: str = 'lbfgs', no_epochs: Optional[int] = None, log: bool = False, lr: Optional[float] = None) -> Dict[str, Any]:
     """
     Train a regression model and return comprehensive performance metrics.
 
@@ -279,7 +277,7 @@ def benchmark_linear_models(
     annualized_rate: int,
     max_no_features: int = 1,
     no_epochs: int = 200,
-    loss=None,
+    loss: Optional[nn.Module] = None,
     test_size: float = 0.25,
     max_workers: Optional[int] = None,
     parallel: bool = DEFAULT_PARALLEL

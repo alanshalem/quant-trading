@@ -22,7 +22,6 @@ import polars as pl
 
 from ..backtest import Position, update_equity_record
 
-
 OHLCVInput = Union[pl.DataFrame, "pandas.DataFrame"]  # noqa: F821
 
 

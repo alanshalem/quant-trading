@@ -5,10 +5,11 @@ Functions for creating charts and plots using Altair and Matplotlib.
 """
 
 from typing import List, Optional
-import numpy as np
-import polars as pl
+
 import altair
 import matplotlib.pyplot as plt
+import numpy as np
+import polars as pl
 
 
 def plot(df: pl.DataFrame, col: str, title: str = "") -> altair.Chart:
@@ -95,7 +96,7 @@ def plot_distribution(data: pl.DataFrame, col: str, label: Optional[str] = None,
     )
 
 
-def plot_static_timeseries(ts: pl.DataFrame, sym: str, col: str, interval_size: str):
+def plot_static_timeseries(ts: pl.DataFrame, sym: str, col: str, interval_size: str) -> None:
     """
     Create a static matplotlib line plot of time series data.
 

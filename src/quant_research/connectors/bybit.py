@@ -7,11 +7,12 @@ Note: This is a template implementation. Bybit provides historical data
 through their API and public data repository.
 """
 
-from typing import List, Optional
-import requests
-from pathlib import Path
-import polars as pl
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import List, Optional
+
+import polars as pl
+import requests
 from tqdm import tqdm
 
 from .base import BaseConnector
@@ -168,7 +169,7 @@ class BybitConnector(BaseConnector):
         cache_dir: str = "data/cache"
     ) -> pl.DataFrame:
         """Download and aggregate into OHLC timeseries."""
-        from ..engineering import timeseries, OHLC_AGGS
+        from ..engineering import OHLC_AGGS, timeseries
 
         yesterday = datetime.now() - timedelta(days=1)
         start_date = yesterday - timedelta(days=no_days - 1)

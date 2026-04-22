@@ -1,5 +1,11 @@
 # Quant Trading Research
 
+[![CI](https://github.com/alanshalem/quant-trading/actions/workflows/ci.yml/badge.svg)](https://github.com/alanshalem/quant-trading/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Polars](https://img.shields.io/badge/polars-1.0%2B-orange)
+![PyTorch](https://img.shields.io/badge/pytorch-2.4%2B-ee4c2c)
+
 Two complementary backtesting paradigms on Polars-native OHLCV data:
 
 - **Vectorized** — PyTorch model predictions → trade log-returns → equity curves via Polars expressions. Fast to iterate; used for ML research.
@@ -16,6 +22,7 @@ See [`docs/architecture.md`](docs/architecture.md) for a full module map and par
 Requires Python 3.10+ installed.
 
 **Windows:**
+
 ```bash
 git clone <repo-url>
 cd quant-trading
@@ -23,6 +30,7 @@ setup.bat
 ```
 
 **Mac/Linux:**
+
 ```bash
 git clone <repo-url>
 cd quant-trading
@@ -39,14 +47,15 @@ Requires Docker installed. No Python needed on host.
 docker compose up --build
 ```
 
-Open http://localhost:8888 for JupyterLab.
+Open <http://localhost:8888> for JupyterLab.
 
 For API docs:
+
 ```bash
 docker compose --profile docs up
 ```
 
-Open http://localhost:8000 for MkDocs.
+Open <http://localhost:8000> for MkDocs.
 
 ---
 
@@ -87,7 +96,7 @@ Expect `28 passed`.
 
 ## Project Structure
 
-```
+```text
 quant-trading/
 ├── src/
 │   └── quant_research/                 # Core library (pip installable)
@@ -131,7 +140,7 @@ quant-trading/
 
 ## Trading Pipeline
 
-```
+```text
 Market Data → Feature Engineering → Model → Signal → Strategy → Execution
 ```
 
@@ -265,6 +274,7 @@ equities_sharpe_factor = sharpe_annualization_factor("1h", 252, 6.5)
 Generated from docstrings with MkDocs + mkdocstrings.
 
 **Local:**
+
 ```bash
 # With venv
 .venv/Scripts/python.exe -m mkdocs serve    # Windows
@@ -274,7 +284,7 @@ Generated from docstrings with MkDocs + mkdocstrings.
 docker compose --profile docs up
 ```
 
-Open http://localhost:8000.
+Open <http://localhost:8000>.
 
 ---
 
