@@ -93,7 +93,7 @@ cryptography==46.0.7
 cuda-bindings==13.2.0
 cuda-pathfinder==1.5.3
     # via cuda-bindings
-cuda-toolkit==13.0.2
+cuda-toolkit==13.2.1
 cycler==0.12.1
     # via matplotlib
 debugpy==1.8.20
