@@ -55,7 +55,7 @@ beautifulsoup4==4.14.3
     # via nbconvert
 bleach==6.3.0
     # via nbconvert
-build==1.4.3
+build==1.4.4
     # via pip-tools
 ccxt==4.5.50
     # via quant-research (pyproject.toml)
