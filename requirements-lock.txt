@@ -439,7 +439,7 @@ rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
-ruff==0.15.11
+ruff==0.15.12
     # via quant-research (pyproject.toml)
 seaborn==0.13.2
     # via quant-research (pyproject.toml)
