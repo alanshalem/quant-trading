@@ -3,10 +3,15 @@
     "jupyter.notebookFileRoot": "${workspaceFolder}",
     "python.envFile": "${workspaceFolder}/.env",
     "yaml.customTags": [
+        "tag:yaml.org,2002:python/name:pymdownx.superfences.fence_code_format",
+        "tag:yaml.org,2002:python/name:pymdownx.superfences.fence_div_format",
+        "tag:yaml.org,2002:python/name:material.extensions.emoji.twemoji",
+        "tag:yaml.org,2002:python/name:material.extensions.emoji.to_svg",
         "!!python/name:pymdownx.superfences.fence_code_format",
         "!!python/name:material.extensions.emoji.twemoji",
         "!!python/name:material.extensions.emoji.to_svg",
         "!ENV scalar",
-        "!ENV sequence"
+        "!ENV sequence",
+        "!relative scalar"
     ]
 }
