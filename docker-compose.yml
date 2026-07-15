@@ -1,6 +1,8 @@
 services:
   jupyter:
-    build: .
+    build:
+      context: .
+      target: jupyter
     container_name: quant-trading-jupyter
     dns:
       - 8.8.8.8
@@ -12,10 +14,8 @@ services:
       - .:/app
       # Persist Jupyter settings
       - jupyter-data:/root/.jupyter
-    environment:
-      - PYTHONPATH=/app:/app/src
     command: >
-      bash -c "mkdir -p data/cache data/models &&
+      bash -c "mkdir -p data/cache data/cache/ccxt data/models &&
       jupyter lab
       --ip=0.0.0.0
       --port=8888
@@ -23,14 +23,21 @@ services:
       --allow-root
       --NotebookApp.token=''
       --ServerApp.root_dir=/app"
+    profiles:
+      - jupyter
 
   docs:
-    build: .
+    build:
+      context: .
+      target: docs
     container_name: quant-trading-docs
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - ./docs:/app/docs
+      - ./mkdocs.yml:/app/mkdocs.yml:ro
+      - ./README.md:/app/README.md:ro
+      - ./src:/app/src:ro
     command: mkdocs serve --dev-addr 0.0.0.0:8000
     profiles:
       - docs

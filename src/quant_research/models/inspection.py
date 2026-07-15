@@ -5,6 +5,7 @@ Functions for analyzing and inspecting PyTorch model architectures and parameter
 """
 
 from typing import Tuple
+
 import numpy as np
 import torch.nn as nn
 
@@ -76,9 +77,9 @@ def print_model_info(model: nn.Module, model_name: str) -> None:
     print(f"\n{'='*60}")
     print(f"{model_name}")
     print(f"{'='*60}")
-    print(f"\nArchitecture:")
+    print("\nArchitecture:")
     print(f"  {model}")
-    print(f"\nParameter Count:")
+    print("\nParameter Count:")
     print(f"  Total parameters:      {total_params:,}")
     print(f"  Trainable parameters:  {trainable_params:,}")
 
@@ -123,7 +124,7 @@ def print_model_complexity_ratio(m1: nn.Module, m1_name: str, m2: nn.Module, m2_
     m2_params = total_model_params(m2)
     complexity_ratio = m2_params / m1_params
 
-    print(f"Complexity Comparison:")
+    print("Complexity Comparison:")
     print(f"\t{m2_name} has {complexity_ratio:.1f}x more parameters than {m1_name}")
     print(f"\tParametric difference: {m2_params - m1_params:,} additional parameters")
 

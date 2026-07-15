@@ -4,10 +4,9 @@ analysis.py - Statistical Analysis
 Functions for statistical analysis of time series data.
 """
 
-from typing import List
 import polars as pl
 
-from .processors import timeseries, lag_col_names
+from .processors import lag_col_names, timeseries
 
 
 def auto_reg_corr_matrx(df: pl.DataFrame, target: str, max_no_lags: int) -> pl.DataFrame:

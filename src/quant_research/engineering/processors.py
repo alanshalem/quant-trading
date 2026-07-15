@@ -4,7 +4,8 @@ processors.py - Data Transformations
 Functions for transforming and processing time series data using Polars.
 """
 
-from typing import List, Union, Optional
+from typing import List, Optional, Union
+
 import polars as pl
 
 from .loaders import OHLC_AGGS

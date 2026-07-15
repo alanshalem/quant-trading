@@ -1,9 +1,8 @@
 """Tests for model architectures."""
 
-import pytest
 import torch
 
-from src.quant_research import LinearModel, NonLinearModel, DeepModel
+from quant_research import DeepModel, LinearModel, NonLinearModel
 
 
 class TestLinearModel:

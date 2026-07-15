@@ -5,17 +5,16 @@ Functions for loading trade data from parquet files and aggregating into time se
 """
 
 import os
-from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime, timedelta
 from functools import lru_cache, partial
-from concurrent.futures import ProcessPoolExecutor
+from pathlib import Path
+from typing import List, Optional, Tuple, Union
 
 import polars as pl
 from tqdm import tqdm
 
-from ..config import DEFAULT_PARALLEL, CACHE_DIR
-
+from ..config import CACHE_DIR, DEFAULT_PARALLEL
 
 # Standard OHLC aggregations
 OHLC_AGGS = [

@@ -1,5 +1,12 @@
 {
-    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
     "jupyter.notebookFileRoot": "${workspaceFolder}",
-    "python.envFile": "${workspaceFolder}/.env"
+    "python.envFile": "${workspaceFolder}/.env",
+    "yaml.customTags": [
+        "!!python/name:pymdownx.superfences.fence_code_format",
+        "!!python/name:material.extensions.emoji.twemoji",
+        "!!python/name:material.extensions.emoji.to_svg",
+        "!ENV scalar",
+        "!ENV sequence"
+    ]
 }

@@ -36,7 +36,7 @@ class LinearModel(nn.Module):
     """
 
     def __init__(self, input_features: int):
-        super(LinearModel, self).__init__()
+        super().__init__()
         self.linear = nn.Linear(input_features, 1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -69,7 +69,7 @@ class NonLinearModel(nn.Module):
     """
 
     def __init__(self, input_features: int, hidden_size: int = 64):
-        super(NonLinearModel, self).__init__()
+        super().__init__()
         self.network = nn.Sequential(
             nn.Linear(input_features, hidden_size),
             nn.ReLU(),
@@ -103,7 +103,7 @@ class DeepModel(nn.Module):
     """
 
     def __init__(self, input_features: int, hidden_sizes: list = None, dropout: float = 0.1):
-        super(DeepModel, self).__init__()
+        super().__init__()
 
         if hidden_sizes is None:
             hidden_sizes = [64, 32]
@@ -150,7 +150,7 @@ class LSTMModel(nn.Module):
     """
 
     def __init__(self, input_features: int, hidden_size: int = 64, num_layers: int = 1, dropout: float = 0.0):
-        super(LSTMModel, self).__init__()
+        super().__init__()
 
         self.lstm = nn.LSTM(
             input_size=input_features,
@@ -187,7 +187,7 @@ class AttentionModel(nn.Module):
     """
 
     def __init__(self, input_features: int, hidden_size: int = 32):
-        super(AttentionModel, self).__init__()
+        super().__init__()
 
         self.query = nn.Linear(input_features, hidden_size)
         self.key = nn.Linear(input_features, hidden_size)

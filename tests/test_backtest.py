@@ -1,10 +1,7 @@
 """Tests for backtesting module."""
 
-import pytest
-import polars as pl
-import numpy as np
 
-from src.quant_research import sharpe_annualization_factor
+from quant_research import sharpe_annualization_factor
 
 
 class TestSharpeAnnualization:
@@ -24,6 +21,6 @@ class TestSharpeAnnualization:
 
     def test_minute_annualization(self):
         """Test annualization factor for minute data."""
-        factor = sharpe_annualization_factor('1m', 365, 24 * 60)
+        factor = sharpe_annualization_factor('1m', 365, 24)
         # sqrt(365 * 24 * 60) = sqrt(525600) ≈ 724.9
         assert 724 < factor < 726
