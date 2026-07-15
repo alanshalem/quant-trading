@@ -1,5 +1,5 @@
 {
-    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
     "jupyter.notebookFileRoot": "${workspaceFolder}",
     "python.envFile": "${workspaceFolder}/.env",
     "yaml.customTags": [
