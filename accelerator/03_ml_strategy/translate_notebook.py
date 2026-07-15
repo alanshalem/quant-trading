@@ -8,8 +8,12 @@ Translate the Jupyter notebook from English to Spanish.
 import json
 import re
 import sys
+from pathlib import Path
 
-NOTEBOOK_PATH = r"c:\development\quant-trading\accelerator\02_strategy\01-ml_model_pytorch_es.ipynb"
+# Notebook to translate in-place. Pass a path as the first CLI argument, or fall
+# back to a sibling notebook resolved relative to this script (never an absolute
+# machine-specific path).
+DEFAULT_NOTEBOOK = Path(__file__).parent / "01-ml_model_pytorch_es.ipynb"
 
 # =============================================================================
 # MARKDOWN TRANSLATION MAP
@@ -992,4 +996,5 @@ def translate_notebook(path):
 
 
 if __name__ == '__main__':
-    translate_notebook(NOTEBOOK_PATH)
+    notebook_path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_NOTEBOOK
+    translate_notebook(str(notebook_path))

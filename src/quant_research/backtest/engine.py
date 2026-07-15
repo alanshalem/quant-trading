@@ -124,8 +124,8 @@ def add_tx_fees(trades: pl.DataFrame, maker_fee: float, taker_fee: float) -> pl.
 def add_tx_fees_log(trades: pl.DataFrame, maker_fee: float, taker_fee: float) -> pl.DataFrame:
     """Add transaction fees in log space for log returns."""
     return trades.with_columns(
-        (pl.col('trade_log_return') + np.log(maker_fee)).alias('trade_log_return_net_maker'),
-        (pl.col('trade_log_return') + np.log(taker_fee)).alias('trade_log_return_net_taker'),
+        (pl.col('trade_log_return') + np.log(1 - maker_fee)).alias('trade_log_return_net_maker'),
+        (pl.col('trade_log_return') + np.log(1 - taker_fee)).alias('trade_log_return_net_taker'),
     ).with_columns(
         pl.col('trade_log_return_net_maker').cum_sum().alias('equity_curve_net_maker'),
         pl.col('trade_log_return_net_taker').cum_sum().alias('equity_curve_net_taker'),
@@ -200,6 +200,7 @@ def add_trade_log_returns(trades: pl.DataFrame, pre_trade_values: Union[List[flo
         # calculate equity curve for net profit
         (initial_capital + pl.col('trade_net_pnl').cum_sum()).alias('equity_curve_net')
     )
+    return trades
 
 
 def add_equity_curve(trades: pl.DataFrame, initial_capital: float, col_name: str, suffix: str) -> pl.DataFrame:

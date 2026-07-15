@@ -206,5 +206,9 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-data/
+data/*
 cache/
+
+# ...but keep the small sample datasets used by the accelerator notebooks
+!data/samples/
+!data/samples/*.csv

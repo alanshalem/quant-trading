@@ -64,7 +64,8 @@ quant-trading/
 │
 ├── accelerator/                   # Learning materials
 │   ├── 01_notebooks/              # 8 modules: Python fundamentals → strategy logic
-│   └── 02_strategy/               # 3-part strategy: model → development → implementation
+│   ├── 02_strategies/             # Classical strategies (momentum, mean reversion) — pandas, no ML
+│   └── 03_ml_strategy/            # 3-part ML strategy: model → development → implementation
 │
 ├── data/
 │   ├── cache/                     # Downloaded trade data (parquet, gitignored)
@@ -138,7 +139,21 @@ Supported: Binance, Bybit, Coinbase, Kraken, OKX.
 
 All notebooks available in English and Spanish (`_es` suffix).
 
-### Module 2: Strategy (`02_strategy/`)
+### Module 2: Classical Strategies (`02_strategies/`)
+
+Complete strategies with **pandas only** — no ML, no library — that apply the
+signals-and-costs ideas from module 08. Both derive an edge from `sign(previous
+log return)` and backtest it end to end with round-trip fees.
+
+| # | Notebook | Signal | Asset / Bar |
+|---|----------|--------|-------------|
+| 01 | `01-momentum` | `sign(lag_1)` — follow the trend | TAO / weekly |
+| 02 | `02-mean_reversion` | `-sign(lag_1)` — fade the move | BCH / daily |
+
+Data ships as committed CSVs in `data/samples/` (runs offline). See
+[`accelerator/02_strategies/README.md`](accelerator/02_strategies/README.md).
+
+### Module 3: ML Strategy (`03_ml_strategy/`)
 
 | Part | Notebook | Focus |
 |------|----------|-------|

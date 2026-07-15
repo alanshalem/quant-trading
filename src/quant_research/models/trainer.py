@@ -262,8 +262,8 @@ def _train_single_model_config(args: Tuple) -> Dict[str, Any]:
     set_seed(SEED)
 
     # Create and train model
-    import models
-    m = models.LinearModel(len(features))
+    from .architectures import LinearModel
+    m = LinearModel(len(features))
     m.apply(init_weights)
 
     return benchmark_reg_model(

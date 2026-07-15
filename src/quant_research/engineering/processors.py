@@ -120,7 +120,7 @@ def add_log_return_features(df: pl.DataFrame, col: str, forecast_horizon: int, m
         max_no_lags = 0
     df = df.with_columns(log_return(col, forecast_horizon))
     if max_no_lags > 0:
-        df = add_lags(df, log_return_col('close'), max_no_lags, forecast_horizon)
+        df = add_lags(df, log_return_col(col), max_no_lags, forecast_horizon)
     return df
 
 

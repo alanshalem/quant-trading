@@ -13,3 +13,6 @@ build/
 .env
 *.log
 node_modules
+
+# Large cached market data — never copy into build context
+data/
