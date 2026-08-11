@@ -294,7 +294,7 @@ numpy==2.4.4
     #   pandas
     #   quant-research (pyproject.toml)
     #   seaborn
-packaging==26.1
+packaging==26.2
     # via
     #   altair
     #   build
