@@ -339,7 +339,7 @@ pluggy==1.6.0
     # via
     #   pytest
     #   pytest-cov
-polars==1.40.0
+polars==1.40.1
     # via quant-research (pyproject.toml)
 polars-runtime-32==1.40.0
     # via polars
