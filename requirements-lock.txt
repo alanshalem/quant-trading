@@ -223,7 +223,7 @@ markupsafe==3.0.3
     #   mkdocs-autorefs
     #   mkdocstrings
     #   nbconvert
-matplotlib==3.10.8
+matplotlib==3.10.9
     # via
     #   quant-research (pyproject.toml)
     #   seaborn
